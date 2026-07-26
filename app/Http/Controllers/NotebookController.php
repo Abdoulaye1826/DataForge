@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\PipelineReplayException;
 use App\Models\DatasetTable;
 use App\Models\Project;
 use App\Repositories\Contracts\PipelineStepRepositoryInterface;
@@ -60,15 +59,11 @@ class NotebookController extends Controller
             abort(404);
         }
 
-        try {
-            $applied = $this->replayService->replay($sourceTable, $targetTable, $project);
-        } catch (PipelineReplayException $e) {
-            return back()->withErrors(['replay' => $e->getMessage()]);
-        }
+        $queued = $this->replayService->replay($sourceTable, $targetTable, $project);
 
         return redirect()
             ->route('projects.notebook.show', $project)
-            ->with('status', "{$applied->count()} étape(s) rejouée(s) avec succès sur « {$targetTable->name} ».");
+            ->with('status', "{$queued->count()} étape(s) en cours de rejeu sur « {$targetTable->name} ».");
     }
 
     private function projectTables(Project $project): \Illuminate\Support\Collection

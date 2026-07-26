@@ -5,6 +5,7 @@ use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\DashboardBuilderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardWidgetController;
+use App\Http\Controllers\DatabaseConnectionController;
 use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\DatasetImportController;
 use App\Http\Controllers\ExportController;
@@ -49,7 +50,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('assistant', [AiAssistantController::class, 'index'])->name('assistant.index');
         Route::post('assistant/conversations', [AiAssistantController::class, 'storeConversation'])->name('assistant.conversations.store');
-        Route::post('assistant/conversations/{aiConversation}/messages', [AiAssistantController::class, 'storeMessage'])->name('assistant.messages.store');
+        Route::post('assistant/conversations/{aiConversation}/messages', [AiAssistantController::class, 'storeMessage'])->name('assistant.messages.store')->middleware('throttle:ai');
 
         Route::get('dashboards', [DashboardBuilderController::class, 'index'])->name('dashboards.index');
         Route::post('dashboards', [DashboardBuilderController::class, 'store'])->name('dashboards.store');
@@ -61,52 +62,58 @@ Route::middleware('auth')->group(function () {
             Route::post('widgets', [DashboardWidgetController::class, 'store'])->name('widgets.store');
             Route::put('widgets/{widget}', [DashboardWidgetController::class, 'update'])->name('widgets.update');
             Route::delete('widgets/{widget}', [DashboardWidgetController::class, 'destroy'])->name('widgets.destroy');
-            Route::get('widgets/{widget}/data', [DashboardWidgetController::class, 'data'])->name('widgets.data');
+            Route::get('widgets/{widget}/data', [DashboardWidgetController::class, 'data'])->name('widgets.data')->middleware('throttle:read');
         });
 
-        Route::post('datasets/import', [DatasetImportController::class, 'store'])->name('datasets.import');
+        Route::post('datasets/import', [DatasetImportController::class, 'store'])->name('datasets.import')->middleware('throttle:heavy');
+        Route::post('datasets/import-demo', [DatasetImportController::class, 'importDemo'])->name('datasets.import-demo')->middleware('throttle:heavy');
+
+        Route::post('database-connections', [DatabaseConnectionController::class, 'store'])->name('database-connections.store')->middleware('throttle:heavy');
+        Route::delete('database-connections/{connection}', [DatabaseConnectionController::class, 'destroy'])->name('database-connections.destroy');
+        Route::get('database-connections/{connection}/tables', [DatabaseConnectionController::class, 'tables'])->name('database-connections.tables')->middleware('throttle:heavy');
+        Route::post('database-connections/{connection}/import', [DatabaseConnectionController::class, 'import'])->name('database-connections.import')->middleware('throttle:heavy');
         Route::get('datasets/{dataset}', [DatasetController::class, 'show'])->name('datasets.show');
-        Route::post('datasets/{dataset}/reimport', [DatasetController::class, 'reimport'])->name('datasets.reimport');
+        Route::post('datasets/{dataset}/reimport', [DatasetController::class, 'reimport'])->name('datasets.reimport')->middleware('throttle:heavy');
         Route::delete('datasets/{dataset}', [DatasetController::class, 'destroy'])->name('datasets.destroy');
 
         Route::get('relationships', [RelationshipController::class, 'index'])->name('relationships.index');
         Route::post('relationships/{relationship}/confirm', [RelationshipController::class, 'confirm'])->name('relationships.confirm');
         Route::post('relationships/{relationship}/reject', [RelationshipController::class, 'reject'])->name('relationships.reject');
-        Route::post('relationships/{relationship}/join', [RelationshipController::class, 'join'])->name('relationships.join');
+        Route::post('relationships/{relationship}/join', [RelationshipController::class, 'join'])->name('relationships.join')->middleware('throttle:heavy');
 
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::post('reports', [ReportController::class, 'store'])->name('reports.store');
+        Route::post('reports', [ReportController::class, 'store'])->name('reports.store')->middleware('throttle:ai');
         Route::get('reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
         Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
 
         Route::prefix('datasets/{dataset}')->name('datasets.')->group(function () {
             Route::get('tables/{table}/quality', [QualityController::class, 'show'])->name('tables.quality.show');
-            Route::post('tables/{table}/quality/refresh', [QualityController::class, 'refresh'])->name('tables.quality.refresh');
-            Route::post('tables/{table}/pipeline-steps', [PipelineStepController::class, 'store'])->name('tables.pipeline-steps.store');
+            Route::post('tables/{table}/quality/refresh', [QualityController::class, 'refresh'])->name('tables.quality.refresh')->middleware('throttle:ai');
+            Route::post('tables/{table}/pipeline-steps', [PipelineStepController::class, 'store'])->name('tables.pipeline-steps.store')->middleware('throttle:heavy');
 
-            Route::post('tables/{table}/pipeline-suggestions', [PipelineSuggestionController::class, 'store'])->name('tables.pipeline-suggestions.store');
-            Route::post('tables/{table}/pipeline-suggestions/accept-all', [PipelineSuggestionController::class, 'acceptAll'])->name('tables.pipeline-suggestions.accept-all');
-            Route::post('tables/{table}/pipeline-suggestions/{pipelineSuggestion}/accept', [PipelineSuggestionController::class, 'accept'])->name('tables.pipeline-suggestions.accept');
+            Route::post('tables/{table}/pipeline-suggestions', [PipelineSuggestionController::class, 'store'])->name('tables.pipeline-suggestions.store')->middleware('throttle:ai');
+            Route::post('tables/{table}/pipeline-suggestions/accept-all', [PipelineSuggestionController::class, 'acceptAll'])->name('tables.pipeline-suggestions.accept-all')->middleware('throttle:heavy');
+            Route::post('tables/{table}/pipeline-suggestions/{pipelineSuggestion}/accept', [PipelineSuggestionController::class, 'accept'])->name('tables.pipeline-suggestions.accept')->middleware('throttle:heavy');
             Route::post('tables/{table}/pipeline-suggestions/{pipelineSuggestion}/reject', [PipelineSuggestionController::class, 'reject'])->name('tables.pipeline-suggestions.reject');
 
             Route::get('tables/{table}/analysis', [AnalysisController::class, 'show'])->name('tables.analysis.show');
-            Route::post('tables/{table}/analysis/run', [AnalysisController::class, 'run'])->name('tables.analysis.run');
+            Route::post('tables/{table}/analysis/run', [AnalysisController::class, 'run'])->name('tables.analysis.run')->middleware('throttle:ai');
 
-            Route::post('tables/{table}/statistical-tests', [StatisticalTestController::class, 'store'])->name('tables.statistical-tests.store');
+            Route::post('tables/{table}/statistical-tests', [StatisticalTestController::class, 'store'])->name('tables.statistical-tests.store')->middleware('throttle:heavy');
             Route::delete('tables/{table}/statistical-tests/{statisticalTest}', [StatisticalTestController::class, 'destroy'])->name('tables.statistical-tests.destroy');
 
             Route::get('tables/{table}/ml', [MlAnalysisController::class, 'show'])->name('tables.ml.show');
-            Route::post('tables/{table}/ml', [MlAnalysisController::class, 'store'])->name('tables.ml.store');
+            Route::post('tables/{table}/ml', [MlAnalysisController::class, 'store'])->name('tables.ml.store')->middleware('throttle:heavy');
             Route::delete('tables/{table}/ml/{mlAnalysis}', [MlAnalysisController::class, 'destroy'])->name('tables.ml.destroy');
 
-            Route::get('tables/{table}/export', [ExportController::class, 'table'])->name('tables.export');
+            Route::get('tables/{table}/export', [ExportController::class, 'table'])->name('tables.export')->middleware('throttle:heavy');
 
             Route::get('tables/{table}/data', [TableDataController::class, 'show'])->name('tables.data.show');
-            Route::get('tables/{table}/data/rows', [TableDataController::class, 'rows'])->name('tables.data.rows');
+            Route::get('tables/{table}/data/rows', [TableDataController::class, 'rows'])->name('tables.data.rows')->middleware('throttle:read');
 
             Route::get('tables/{table}/visualizations', [VisualizationController::class, 'index'])->name('tables.visualizations.index');
-            Route::post('tables/{table}/visualizations', [VisualizationController::class, 'store'])->name('tables.visualizations.store');
-            Route::post('tables/{table}/visualizations/{visualization}/refresh', [VisualizationController::class, 'refresh'])->name('tables.visualizations.refresh');
+            Route::post('tables/{table}/visualizations', [VisualizationController::class, 'store'])->name('tables.visualizations.store')->middleware('throttle:heavy');
+            Route::post('tables/{table}/visualizations/{visualization}/refresh', [VisualizationController::class, 'refresh'])->name('tables.visualizations.refresh')->middleware('throttle:heavy');
             Route::delete('tables/{table}/visualizations/{visualization}', [VisualizationController::class, 'destroy'])->name('tables.visualizations.destroy');
         });
     });

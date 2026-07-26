@@ -62,9 +62,19 @@ class PipelineStepController extends Controller
             return back()->withErrors(['transformation' => $e->getMessage()])->withInput();
         }
 
+        // Module config par colonne (inspiré de Power Query) : ouverte depuis
+        // l'en-tête d'une colonne sur la page Données, la transformation doit
+        // ramener sur cette même page plutôt que sur l'aperçu du dataset,
+        // pour enchaîner plusieurs colonnes sans perdre sa place.
+        if ($request->boolean('return_to_data')) {
+            return redirect()
+                ->route('projects.datasets.tables.data.show', [$project, $dataset, $table])
+                ->with('status', 'Transformation en cours...');
+        }
+
         return redirect()
             ->route('projects.datasets.show', [$project, $dataset])
-            ->with('status', 'Transformation appliquée.');
+            ->with('status', 'Transformation en cours...');
     }
 
     private function dispatch(PipelineStepType $type, Request $request, DatasetTable $table, Project $project): PipelineStep

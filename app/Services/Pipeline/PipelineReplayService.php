@@ -3,11 +3,12 @@
 namespace App\Services\Pipeline;
 
 use App\Enums\PipelineStepType;
-use App\Exceptions\PipelineReplayException;
-use App\Exceptions\PythonExecutionException;
+use App\Jobs\ApplyPipelineStepJob;
 use App\Models\DatasetTable;
+use App\Models\PipelineStep;
 use App\Models\Project;
 use App\Repositories\Contracts\PipelineStepRepositoryInterface;
+use Illuminate\Bus\Bus;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,6 +18,13 @@ use Illuminate\Support\Collection;
  * shape) by re-running the same PipelineStepService logic - no separate
  * replay engine, so replay can never drift from what actually happened the
  * first time.
+ *
+ * Each step now runs as a queued job (see PipelineStepService::applyStep),
+ * so the steps are chained via Illuminate\Bus\PendingChain rather than
+ * applied in a plain loop - a chain stops at the first job that throws,
+ * preserving the original "abort on first failure" guarantee instead of
+ * silently continuing to replay steps 2+ on top of a step 1 that never
+ * actually succeeded.
  */
 class PipelineReplayService
 {
@@ -27,29 +35,21 @@ class PipelineReplayService
     }
 
     /**
-     * @return Collection<int, \App\Models\PipelineStep> The steps applied to the target table.
-     *
-     * @throws PipelineReplayException On the first step that fails to apply.
+     * @return Collection<int, PipelineStep> The (Pending) steps queued onto the target table.
      */
     public function replay(DatasetTable $sourceTable, DatasetTable $targetTable, Project $project): Collection
     {
         $steps = $this->pipelineSteps->orderedForTable($sourceTable->id)
             ->reject(fn ($step) => $step->step_type === PipelineStepType::Import);
 
-        $applied = new Collection();
+        $queued = $steps->map(
+            fn ($step) => $this->pipelineStepService->createPending($targetTable, $project, $step->step_type, $step->params ?? [])
+        );
 
-        foreach ($steps as $step) {
-            try {
-                $applied->push(
-                    $this->pipelineStepService->applyStep($targetTable, $project, $step->step_type, $step->params ?? [])
-                );
-            } catch (PythonExecutionException $e) {
-                throw new PipelineReplayException(
-                    "Échec au rejeu de l'étape « {$step->label} » : {$e->getMessage()}"
-                );
-            }
+        if ($queued->isNotEmpty()) {
+            Bus::chain($queued->map(fn (PipelineStep $step) => new ApplyPipelineStepJob($step))->all())->dispatch();
         }
 
-        return $applied;
+        return $queued;
     }
 }

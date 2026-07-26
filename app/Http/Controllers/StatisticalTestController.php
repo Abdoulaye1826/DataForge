@@ -37,7 +37,7 @@ class StatisticalTestController extends Controller
 
         return redirect()
             ->route('projects.datasets.tables.analysis.show', [$project, $dataset, $table])
-            ->with('status', 'Test statistique calculé.');
+            ->with('status', 'Test statistique en cours de calcul...');
     }
 
     public function destroy(Project $project, Dataset $dataset, DatasetTable $table, StatisticalTest $statisticalTest): RedirectResponse

@@ -34,7 +34,7 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
 
         return view('projects.show', [
-            'project' => $project->load('datasets.tables.columns'),
+            'project' => $project->load('datasets.tables.columns', 'connections'),
         ]);
     }
 

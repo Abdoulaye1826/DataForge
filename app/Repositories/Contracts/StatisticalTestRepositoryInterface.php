@@ -13,5 +13,7 @@ interface StatisticalTestRepositoryInterface
 
     public function create(array $attributes): StatisticalTest;
 
+    public function update(StatisticalTest $test, array $attributes): StatisticalTest;
+
     public function delete(StatisticalTest $test): void;
 }

@@ -53,8 +53,12 @@
                         <div style="height: 280px" data-chart-type="{{ $visualization->chart_type->value }}"
                              data-chart-name="{{ $visualization->name }}"
                              data-chart-payload='@json($visualization->data_cache)'></div>
+                    @elseif ($visualization->error)
+                        <p class="text-danger small mb-0">{{ $visualization->error }}</p>
                     @else
-                        <p class="text-secondary small mb-0">Pas encore de données.</p>
+                        <p class="text-secondary small mb-0" data-pending-poll>
+                            <span class="badge text-bg-warning">En cours</span> Calcul en cours...
+                        </p>
                     @endif
                     @if ($visualization->rationale)
                         <p class="text-secondary small mt-2 mb-0 fst-italic">💡 {{ $visualization->rationale }}</p>

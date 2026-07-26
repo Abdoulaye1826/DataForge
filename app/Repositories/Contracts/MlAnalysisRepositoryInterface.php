@@ -13,5 +13,7 @@ interface MlAnalysisRepositoryInterface
 
     public function create(array $attributes): MlAnalysis;
 
+    public function update(MlAnalysis $analysis, array $attributes): MlAnalysis;
+
     public function delete(MlAnalysis $analysis): void;
 }

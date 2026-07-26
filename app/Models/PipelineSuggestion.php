@@ -26,6 +26,7 @@ class PipelineSuggestion extends Model
         'step_type',
         'params',
         'rationale',
+        'plan',
         'status',
         'computed_at',
     ];
@@ -50,5 +51,26 @@ class PipelineSuggestion extends Model
     public function scopePending(Builder $query): Builder
     {
         return $query->where('status', PipelineSuggestionStatus::Pending);
+    }
+
+    /**
+     * Module config par colonne (inspiré de Power Query) : quelle(s)
+     * colonne(s) réelle(s) cette suggestion concerne, en normalisant les
+     * différentes clés que "params" peut porter selon step_type (voir
+     * PipelineRecommendationService::prompt() pour le schéma exact). Sert à
+     * filtrer les suggestions pertinentes quand l'utilisateur clique sur
+     * l'en-tête d'une colonne précise dans la page Données.
+     *
+     * @return array<int, string>
+     */
+    public function referencedColumns(): array
+    {
+        $params = $this->params ?? [];
+
+        return array_values(array_unique(array_filter([
+            ...(is_array($params['columns'] ?? null) ? $params['columns'] : []),
+            $params['column'] ?? null,
+            $params['old_name'] ?? null,
+        ])));
     }
 }

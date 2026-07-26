@@ -67,13 +67,19 @@ def _detect_type(series: pd.Series, non_null: pd.Series, distinct_count: int, to
     if distinct_count <= 2 and set(lowered.unique()).issubset(BOOLEAN_TOKENS):
         return "boolean"
 
-    parsed_dates = pd.to_datetime(non_null, errors="coerce", format="mixed")
-    if parsed_dates.notna().mean() >= PARSE_SUCCESS_THRESHOLD:
-        return "date" if _all_midnight(parsed_dates.dropna()) else "datetime"
-
+    # Numbers before dates: pd.to_datetime() never fails on a numeric
+    # column - it silently reinterprets each value as a nanosecond-since-
+    # epoch offset (25 becomes 1970-01-01T00:00:00.000000025), so checking
+    # dates first would misdetect any numeric column stored as object dtype
+    # (common with Excel exports, thousands separators, stray blanks...) as
+    # a date/datetime column instead of integer/float.
     parsed_numbers = pd.to_numeric(non_null, errors="coerce")
     if parsed_numbers.notna().mean() >= PARSE_SUCCESS_THRESHOLD:
         return "integer" if (parsed_numbers.dropna() % 1 == 0).all() else "float"
+
+    parsed_dates = pd.to_datetime(non_null, errors="coerce", format="mixed")
+    if parsed_dates.notna().mean() >= PARSE_SUCCESS_THRESHOLD:
+        return "date" if _all_midnight(parsed_dates.dropna()) else "datetime"
 
     if distinct_count <= CATEGORY_MAX_DISTINCT and (total == 0 or distinct_count / total <= CATEGORY_MAX_RATIO):
         return "category"

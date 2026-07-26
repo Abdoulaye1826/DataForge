@@ -3,13 +3,23 @@
 <div class="modal fade" id="transformModal{{ $table->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('projects.datasets.tables.pipeline-steps.store', [$project, $dataset, $table]) }}">
+            <form method="POST" action="{{ route('projects.datasets.tables.pipeline-steps.store', [$project, $dataset, $table]) }}" data-transform-form>
                 @csrf
+                <input type="hidden" name="return_to_data" value="0" data-return-to-data>
                 <div class="modal-header">
-                    <h5 class="modal-title">Transformer « {{ $table->name }} »</h5>
+                    <h5 class="modal-title" data-transform-title>Transformer « {{ $table->name }} »</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
+                    {{-- Module config par colonne (inspiré de Power Query) : rempli et affiché
+                         par resources/js/column-transform.js quand la modale est ouverte depuis
+                         l'en-tête d'une colonne précise sur la page Données - masqué sinon. --}}
+                    <div class="mb-3 d-none" data-column-suggestions-panel>
+                        <p class="small fw-bold mb-2">🧠 Suggestions IA pour cette colonne</p>
+                        <div data-column-suggestions-list class="d-flex flex-column gap-2 mb-2"></div>
+                        <hr class="mt-1">
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Opération</label>
                         <select name="step_type" class="form-select df-transform-select" data-table="{{ $table->id }}" required>

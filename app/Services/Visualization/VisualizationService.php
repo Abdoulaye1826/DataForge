@@ -4,6 +4,8 @@ namespace App\Services\Visualization;
 
 use App\Enums\ChartType;
 use App\Enums\VisualizationSource;
+use App\Exceptions\PythonExecutionException;
+use App\Jobs\GenerateVisualizationJob;
 use App\Models\DatasetTable;
 use App\Models\Project;
 use App\Models\Visualization;
@@ -16,6 +18,11 @@ use InvalidArgumentException;
  * Module Visualisations: builds/refreshes chart data via generate_chart_data.py
  * and persists it as a Visualization the user can revisit without recomputing
  * (data_cache) - refresh() recomputes it after the underlying table changes.
+ *
+ * create() creates the row and dispatches the actual computation as a job
+ * rather than running generate_chart_data.py inline - data_cache staying
+ * null is the app's existing "not computed yet" signal (already relied on
+ * by the report/dashboard code), process() is what the job calls to fill it.
  */
 class VisualizationService
 {
@@ -65,18 +72,47 @@ class VisualizationService
             'rationale' => $rationale,
         ]);
 
-        return $this->refresh($visualization, $table, $project);
+        GenerateVisualizationJob::dispatch($visualization);
+
+        return $visualization;
     }
 
-    public function refresh(Visualization $visualization, DatasetTable $table, Project $project): Visualization
+    /**
+     * Dispatches (re)computation of a visualization's chart data - used both
+     * right after create() and for the manual "recompute" action once the
+     * underlying table has changed. Clears any previous data_cache/error
+     * first so the UI immediately reflects "recalculating" instead of
+     * showing stale data while the job runs.
+     */
+    public function refresh(Visualization $visualization): Visualization
     {
-        $result = $this->pythonRunner->run('generate_chart_data.py', [
-            'storage_path' => $table->storage_path,
-            'chart_type' => $visualization->chart_type->value,
-            'config' => $visualization->config,
-        ], $project->id);
+        $visualization = $this->visualizations->update($visualization, ['data_cache' => null, 'error' => null]);
 
-        return $this->visualizations->update($visualization, ['data_cache' => $result->data]);
+        GenerateVisualizationJob::dispatch($visualization);
+
+        return $visualization;
+    }
+
+    /**
+     * Runs the real generate_chart_data.py computation for a visualization
+     * and settles data_cache (success) or error (failure). Called by
+     * GenerateVisualizationJob - never call this synchronously from a request.
+     */
+    public function process(Visualization $visualization): void
+    {
+        try {
+            $result = $this->pythonRunner->run('generate_chart_data.py', [
+                'storage_path' => $visualization->table->storage_path,
+                'chart_type' => $visualization->chart_type->value,
+                'config' => $visualization->config,
+            ], $visualization->project_id);
+
+            $this->visualizations->update($visualization, ['data_cache' => $result->data, 'error' => null]);
+        } catch (PythonExecutionException $e) {
+            $this->visualizations->update($visualization, ['error' => $e->getMessage()]);
+
+            throw $e;
+        }
     }
 
     public function delete(Visualization $visualization): void

@@ -52,9 +52,11 @@
                                 <div class="small mt-1 fst-italic">💬 {{ $step->rationale }}</div>
                             @endif
                         </div>
-                        <div class="text-end">
+                        <div class="text-end" @if ($step->status->value === 'pending') data-pending-poll @endif>
                             <span class="badge {{ $step->status->badgeClass() }}">{{ $step->status->label() }}</span>
-                            <div class="text-secondary small mt-1">{{ $step->applied_at->diffForHumans() }}</div>
+                            @if ($step->applied_at)
+                                <div class="text-secondary small mt-1">{{ $step->applied_at->diffForHumans() }}</div>
+                            @endif
                         </div>
                     </li>
                 @endforeach

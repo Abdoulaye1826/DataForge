@@ -44,15 +44,42 @@
                 <div class="df-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h2 class="h6 fw-bold mb-0">{{ $analysis->analysis_type->label() }}</h2>
-                        <form method="POST" action="{{ route('projects.datasets.tables.ml.destroy', [$project, $dataset, $table, $analysis]) }}" onsubmit="return confirm('Supprimer cette analyse ?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
-                        </form>
+                        <div class="d-flex align-items-center gap-2">
+                            @if ($analysis->status->value === 'completed')
+                                @php
+                                    $comparePayload = ['__title' => $analysis->analysis_type->label() . ' #' . $analysis->id];
+                                    if ($analysis->analysis_type->value === 'clustering') {
+                                        $comparePayload['Clusters'] = $analysis->result['n_clusters'];
+                                        $comparePayload['Colonnes'] = implode(', ', $analysis->result['columns']);
+                                        $comparePayload['Inertie'] = $analysis->result['inertia'];
+                                    } else {
+                                        $comparePayload['Tendance'] = $analysis->result['trend'];
+                                        $comparePayload['Pente'] = $analysis->result['slope'];
+                                        $comparePayload['R²'] = $analysis->result['r2'];
+                                    }
+                                @endphp
+                                <label class="df-compare-checkbox">
+                                    <input type="checkbox" data-compare-checkbox data-compare-payload='@json($comparePayload)'>
+                                    Comparer
+                                </label>
+                            @endif
+                            <form method="POST" action="{{ route('projects.datasets.tables.ml.destroy', [$project, $dataset, $table, $analysis]) }}" onsubmit="return confirm('Supprimer cette analyse ?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                            </form>
+                        </div>
                     </div>
-                    <p class="text-secondary small mb-2">{{ $analysis->computed_at->diffForHumans() }}</p>
+                    <p class="text-secondary small mb-2">
+                        <span class="badge {{ $analysis->status->badgeClass() }}">{{ $analysis->status->label() }}</span>
+                        @if ($analysis->computed_at) {{ $analysis->computed_at->diffForHumans() }} @endif
+                    </p>
 
-                    @if ($analysis->analysis_type->value === 'clustering')
+                    @if ($analysis->status->value === 'pending')
+                        <p class="small text-secondary mb-0" data-pending-poll>Calcul en cours...</p>
+                    @elseif ($analysis->status->value === 'failed')
+                        <p class="small text-danger mb-0">{{ $analysis->error }}</p>
+                    @elseif ($analysis->analysis_type->value === 'clustering')
                         @php $result = $analysis->result; @endphp
                         <p class="small mb-2">
                             {{ $result['n_clusters'] }} clusters sur {{ implode(', ', $result['columns']) }} · inertie {{ $result['inertia'] }}
@@ -152,4 +179,6 @@
         </div>
     </div>
 </div>
+
+<x-compare-bar />
 @endsection

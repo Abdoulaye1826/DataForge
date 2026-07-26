@@ -17,7 +17,7 @@
 
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
+        <div class="d-flex align-items-center gap-2 mb-1" @if ($dataset->status->value === 'pending') data-pending-poll @endif>
             <h1 class="h5 fw-bold mb-0">{{ $dataset->name }}</h1>
             <span class="badge {{ $dataset->status->badgeClass() }}">{{ $dataset->status->label() }}</span>
         </div>
@@ -128,6 +128,13 @@
                         <button type="submit" class="btn btn-primary btn-sm">Tout accepter</button>
                     </form>
                 </div>
+
+                @if ($pendingSuggestions->first()->plan)
+                    <p class="small text-secondary fst-italic border-start border-2 ps-2 mb-3">
+                        {{ $pendingSuggestions->first()->plan }}
+                    </p>
+                @endif
+
                 <ul class="list-unstyled mb-0 small">
                     @foreach ($pendingSuggestions as $suggestion)
                         <li class="d-flex justify-content-between align-items-start gap-2 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">

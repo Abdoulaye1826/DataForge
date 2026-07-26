@@ -108,6 +108,7 @@
             <table class="table table-sm mb-0 align-middle">
                 <thead>
                     <tr class="small text-secondary">
+                        <th></th>
                         <th>Test</th>
                         <th>Statistique</th>
                         <th>p-value</th>
@@ -117,16 +118,37 @@
                 </thead>
                 <tbody>
                     @foreach ($statisticalTests as $test)
-                        <tr class="small">
-                            <td class="fw-semibold" style="white-space: nowrap">{{ $test->test_type->label() }}</td>
-                            <td>{{ $test->result['statistic'] }}</td>
-                            <td>{{ $test->result['p_value'] }}</td>
+                        <tr class="small" @if ($test->status->value === 'pending') data-pending-poll @endif>
                             <td>
-                                <span class="badge {{ $test->result['significant'] ? 'text-bg-success' : 'text-bg-light border' }} mb-1">
-                                    {{ $test->result['significant'] ? 'Significatif' : 'Non significatif' }}
-                                </span>
-                                <div class="text-secondary">{{ $test->result['interpretation'] }}</div>
+                                @if ($test->status->value === 'completed')
+                                    @php
+                                        $testPayload = [
+                                            '__title' => $test->test_type->label() . ' #' . $test->id,
+                                            'Statistique' => $test->result['statistic'],
+                                            'p-value' => $test->result['p_value'],
+                                            'Résultat' => $test->result['significant'] ? 'Significatif' : 'Non significatif',
+                                        ];
+                                    @endphp
+                                    <label class="df-compare-checkbox">
+                                        <input type="checkbox" data-compare-checkbox data-compare-payload='@json($testPayload)'>
+                                    </label>
+                                @endif
                             </td>
+                            <td class="fw-semibold" style="white-space: nowrap">{{ $test->test_type->label() }}</td>
+                            @if ($test->status->value === 'pending')
+                                <td colspan="3"><span class="badge {{ $test->status->badgeClass() }}">{{ $test->status->label() }}</span></td>
+                            @elseif ($test->status->value === 'failed')
+                                <td colspan="3"><span class="badge {{ $test->status->badgeClass() }}">{{ $test->status->label() }}</span> <span class="text-secondary">{{ $test->error }}</span></td>
+                            @else
+                                <td>{{ $test->result['statistic'] }}</td>
+                                <td>{{ $test->result['p_value'] }}</td>
+                                <td>
+                                    <span class="badge {{ $test->result['significant'] ? 'text-bg-success' : 'text-bg-light border' }} mb-1">
+                                        {{ $test->result['significant'] ? 'Significatif' : 'Non significatif' }}
+                                    </span>
+                                    <div class="text-secondary">{{ $test->result['interpretation'] }}</div>
+                                </td>
+                            @endif
                             <td class="text-end">
                                 <form method="POST" action="{{ route('projects.datasets.tables.statistical-tests.destroy', [$project, $dataset, $table, $test]) }}" onsubmit="return confirm('Supprimer ce test ?');">
                                     @csrf
@@ -355,4 +377,6 @@
         </div>
     </div>
 </div>
+
+<x-compare-bar />
 @endsection

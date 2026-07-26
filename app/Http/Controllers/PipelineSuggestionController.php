@@ -55,7 +55,7 @@ class PipelineSuggestionController extends Controller
 
         return redirect()
             ->route('projects.datasets.show', [$project, $dataset])
-            ->with('status', 'Suggestion appliquée.');
+            ->with('status', 'Suggestion en cours d\'application...');
     }
 
     public function reject(Project $project, Dataset $dataset, DatasetTable $table, PipelineSuggestion $pipelineSuggestion): RedirectResponse
@@ -85,6 +85,6 @@ class PipelineSuggestionController extends Controller
 
         return redirect()
             ->route('projects.datasets.show', [$project, $dataset])
-            ->with('status', $failed > 0 ? "Suggestions appliquées ({$failed} échec(s))." : 'Toutes les suggestions ont été appliquées.');
+            ->with('status', $failed > 0 ? "Suggestions en cours d'application ({$failed} échec(s) au démarrage)." : 'Toutes les suggestions sont en cours d\'application...');
     }
 }

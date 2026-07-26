@@ -92,6 +92,11 @@
                 @else
                     <div class="df-topbar-title">@yield('title', 'Dashboard')</div>
                 @endif
+
+                <button type="button" class="df-command-trigger" data-command-trigger>
+                    <span>Rechercher ou naviguer…</span>
+                    <kbd>Ctrl K</kbd>
+                </button>
             </header>
 
             <main class="df-content">
@@ -101,6 +106,40 @@
 
                 @yield('content')
             </main>
+        </div>
+    </div>
+
+    {{-- Palette de commandes (Ctrl/Cmd+K) : navigation rapide vers un projet
+         ou une action globale, sans dépendre d'un endpoint dédié - la liste
+         des projets de l'utilisateur est déjà bon marché à charger sur
+         chaque page et reste minuscule (id/nom/url uniquement). --}}
+    <script type="application/json" id="df-command-palette-data">
+        {!! json_encode([
+            'projects' => Auth::user()->projects()->orderByDesc('last_activity_at')->get(['id', 'name'])->map(fn ($p) => [
+                'label' => $p->name,
+                'hint' => 'Projet',
+                'url' => route('projects.show', $p),
+            ]),
+            'global' => [
+                ['label' => 'Tableau de bord', 'hint' => 'Aller à', 'url' => route('dashboard')],
+                ['label' => 'Tous les projets', 'hint' => 'Aller à', 'url' => route('projects.index')],
+            ],
+            'project' => isset($project) ? [
+                ['label' => 'Aperçu du projet', 'hint' => $project->name, 'url' => route('projects.show', $project)],
+                ['label' => 'Notebook', 'hint' => $project->name, 'url' => route('projects.notebook.show', $project)],
+                ['label' => 'Dashboards', 'hint' => $project->name, 'url' => route('projects.dashboards.index', $project)],
+                ['label' => 'Relations entre tables', 'hint' => $project->name, 'url' => route('projects.relationships.index', $project)],
+                ['label' => 'Rapports', 'hint' => $project->name, 'url' => route('projects.reports.index', $project)],
+                ['label' => 'Assistant IA', 'hint' => $project->name, 'url' => route('projects.assistant.index', $project)],
+            ] : [],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+    </script>
+
+    <div class="df-command-palette" data-command-palette hidden>
+        <div class="df-command-backdrop" data-command-backdrop></div>
+        <div class="df-command-box" role="dialog" aria-modal="true" aria-label="Palette de commandes">
+            <input type="text" class="df-command-input" data-command-input placeholder="Rechercher un projet ou une action…" autocomplete="off">
+            <ul class="df-command-results" data-command-results></ul>
         </div>
     </div>
 </body>

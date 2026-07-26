@@ -6,7 +6,9 @@ use App\Enums\DatasetFormat;
 use App\Enums\DatasetStatus;
 use App\Exceptions\PythonExecutionException;
 use App\Exceptions\UnsupportedFileFormatException;
+use App\Jobs\ProcessDatasetImportJob;
 use App\Models\Dataset;
+use App\Models\DatabaseConnection;
 use App\Models\DatasetTable;
 use App\Models\Project;
 use App\Repositories\Contracts\DatasetRepositoryInterface;
@@ -41,6 +43,7 @@ class DatasetImportService
         private readonly RelationshipDetectionService $relationshipDetection,
         private readonly PipelineStepRepositoryInterface $pipelineSteps,
         private readonly TableOnboardingService $onboarding,
+        private readonly DatabaseConnectionService $databaseConnections,
     ) {
     }
 
@@ -70,9 +73,34 @@ class DatasetImportService
             'status' => DatasetStatus::Pending,
         ]);
 
-        $this->processDataset($dataset, $project, 'dataset.imported', 'importé');
+        ProcessDatasetImportJob::dispatch($dataset, $project, 'dataset.imported', 'importé');
 
-        return $dataset->fresh()->load('tables.columns');
+        return $dataset;
+    }
+
+    /**
+     * Module "Connecteurs SQL": same Pending-row-then-async-job shape as
+     * import(), but the source is a live database table instead of an
+     * uploaded file - disk_path/size_bytes stay empty (like a joined/derived
+     * dataset) and database_connection_id + original_filename (the remote
+     * table's own name) are kept so reimport() can re-fetch fresh data later.
+     */
+    public function importFromDatabase(Project $project, DatabaseConnection $connection, string $tableName): Dataset
+    {
+        $dataset = $this->datasets->create([
+            'project_id' => $project->id,
+            'database_connection_id' => $connection->id,
+            'name' => "{$connection->name} · {$tableName}",
+            'original_filename' => $tableName,
+            'format' => DatasetFormat::Sql,
+            'disk_path' => null,
+            'size_bytes' => 0,
+            'status' => DatasetStatus::Pending,
+        ]);
+
+        ProcessDatasetImportJob::dispatch($dataset, $project, 'dataset.imported', 'importé');
+
+        return $dataset;
     }
 
     /**
@@ -89,13 +117,21 @@ class DatasetImportService
         }
 
         $dataset->tables()->get()->each->delete();
+        $dataset->update(['status' => DatasetStatus::Pending]);
 
-        $this->processDataset($dataset, $project, 'dataset.reimported', 'retraité');
+        ProcessDatasetImportJob::dispatch($dataset, $project, 'dataset.reimported', 'retraité');
 
-        return $dataset->fresh()->load('tables.columns');
+        return $dataset;
     }
 
-    private function processDataset(Dataset $dataset, Project $project, string $action, string $verb): void
+    /**
+     * The heavy part of an import: real Python parsing + the full onboarding
+     * cascade (quality, EDA, AI insights, default charts) for every table
+     * produced. Public so ProcessDatasetImportJob can run it off the request
+     * thread - the caller is responsible for having already created the
+     * Dataset row (status Pending) synchronously.
+     */
+    public function processDataset(Dataset $dataset, Project $project, string $action, string $verb): void
     {
         try {
             [$tables, $skippedSheets] = $this->readTables($dataset, $dataset->format);
@@ -148,6 +184,10 @@ class DatasetImportService
     {
         $outputDir = storage_path("app/datasets/{$dataset->id}/tables");
 
+        if ($format === DatasetFormat::Sql) {
+            return [[$this->readTableFromDatabase($dataset, $outputDir)], []];
+        }
+
         $result = $this->pythonRunner->run('import_dataset.py', [
             'source_path' => Storage::path($dataset->disk_path),
             'format' => $format->value,
@@ -159,6 +199,28 @@ class DatasetImportService
         ], $dataset->project_id);
 
         return [$result->data['tables'], $result->data['skipped_sheets'] ?? []];
+    }
+
+    /**
+     * @return array{name: string, row_count: int, column_count: int, storage_path: string}
+     */
+    private function readTableFromDatabase(Dataset $dataset, string $outputDir): array
+    {
+        $connection = $dataset->databaseConnection;
+
+        if ($connection === null) {
+            throw new UnsupportedFileFormatException('La connexion à la base de données source a été supprimée - impossible de retraiter ce dataset.');
+        }
+
+        $result = $this->pythonRunner->run('db_import_table.py', [
+            'connection' => $this->databaseConnections->connectionPayload($connection),
+            // original_filename holds the remote table's own name (see
+            // importFromDatabase()), not an uploaded file name.
+            'table_name' => $dataset->original_filename,
+            'output_dir' => $outputDir,
+        ], $dataset->project_id);
+
+        return $result->data;
     }
 
     private function logImportStep(DatasetTable $table, Project $project): void

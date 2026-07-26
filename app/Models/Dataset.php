@@ -17,6 +17,7 @@ class Dataset extends Model
 
     protected $fillable = [
         'project_id',
+        'database_connection_id',
         'name',
         'original_filename',
         'format',
@@ -35,6 +36,11 @@ class Dataset extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function databaseConnection(): BelongsTo
+    {
+        return $this->belongsTo(DatabaseConnection::class);
     }
 
     public function tables(): HasMany

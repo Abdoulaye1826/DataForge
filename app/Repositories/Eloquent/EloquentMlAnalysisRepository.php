@@ -15,12 +15,19 @@ class EloquentMlAnalysisRepository implements MlAnalysisRepositoryInterface
 
     public function forTable(int $datasetTableId): Collection
     {
-        return MlAnalysis::where('dataset_table_id', $datasetTableId)->latest('computed_at')->get();
+        return MlAnalysis::where('dataset_table_id', $datasetTableId)->latest('id')->get();
     }
 
     public function create(array $attributes): MlAnalysis
     {
         return MlAnalysis::create($attributes);
+    }
+
+    public function update(MlAnalysis $analysis, array $attributes): MlAnalysis
+    {
+        $analysis->update($attributes);
+
+        return $analysis;
     }
 
     public function delete(MlAnalysis $analysis): void

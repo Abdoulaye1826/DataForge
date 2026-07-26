@@ -38,7 +38,10 @@ return [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
-            'retry_after' => 90,
+            // Must exceed PYTHON_TIMEOUT (120s, see config/dataforge.php) -
+            // otherwise the worker would consider a still-running Python
+            // subprocess "lost" and re-dispatch the same job on top of it.
+            'retry_after' => 180,
             'after_commit' => false,
         ],
 

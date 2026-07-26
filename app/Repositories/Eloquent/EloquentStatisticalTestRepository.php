@@ -15,12 +15,19 @@ class EloquentStatisticalTestRepository implements StatisticalTestRepositoryInte
 
     public function forTable(int $datasetTableId): Collection
     {
-        return StatisticalTest::where('dataset_table_id', $datasetTableId)->latest('computed_at')->get();
+        return StatisticalTest::where('dataset_table_id', $datasetTableId)->latest('id')->get();
     }
 
     public function create(array $attributes): StatisticalTest
     {
         return StatisticalTest::create($attributes);
+    }
+
+    public function update(StatisticalTest $test, array $attributes): StatisticalTest
+    {
+        $test->update($attributes);
+
+        return $test;
     }
 
     public function delete(StatisticalTest $test): void

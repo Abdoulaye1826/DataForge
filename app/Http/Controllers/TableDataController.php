@@ -25,6 +25,8 @@ class TableDataController extends Controller
             'dataset' => $dataset,
             'table' => $table,
             'page' => $this->tableBrowser->browse($table, $project),
+            'suggestions' => $table->pipelineSuggestions()->pending()->get(),
+            'columnsByName' => $table->columns()->get()->keyBy('name'),
         ]);
     }
 

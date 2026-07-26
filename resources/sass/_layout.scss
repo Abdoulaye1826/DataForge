@@ -13,6 +13,18 @@ body {
     color: var(--df-text);
 }
 
+// Thème sombre "console holographique" : une lueur ambiante très discrète
+// en haut de l'écran donne aux panneaux vitrés (backdrop-filter) quelque
+// chose à flouter, au lieu d'un fond plat - c'est ce qui vend l'effet verre
+// de la référence visuelle fournie par l'utilisateur.
+[data-bs-theme="dark"] body {
+    background:
+        radial-gradient(1100px 700px at 12% -10%, rgba(62, 166, 255, 0.10), transparent 60%),
+        radial-gradient(900px 600px at 100% 0%, rgba(62, 166, 255, 0.06), transparent 55%),
+        var(--df-bg);
+    background-attachment: fixed;
+}
+
 ::selection {
     background: var(--df-ember-tint);
     color: var(--df-ember-strong);
@@ -42,6 +54,8 @@ a:hover { color: var(--df-ember); }
     width: var(--df-sidebar-width);
     flex-shrink: 0;
     background: var(--df-surface-2);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
     border-right: 1px solid var(--df-border);
     display: flex;
     flex-direction: column;
@@ -74,7 +88,7 @@ a:hover { color: var(--df-ember); }
     font-size: 11px;
     font-weight: 700;
     font-family: $font-family-mono;
-    box-shadow: 0 2px 6px -1px rgba(221, 122, 31, .45);
+    box-shadow: 0 2px 6px -1px color-mix(in srgb, var(--df-ember) 45%, transparent);
     flex-shrink: 0;
 }
 
@@ -121,7 +135,7 @@ a:hover { color: var(--df-ember); }
     &.active {
         background: var(--df-surface);
         color: var(--df-ember-strong);
-        box-shadow: var(--df-shadow-sm);
+        box-shadow: var(--df-shadow-sm), var(--df-glow-ring);
 
         .df-ic { opacity: 1; }
     }
@@ -186,6 +200,8 @@ a:hover { color: var(--df-ember); }
     justify-content: space-between;
     padding: 0 22px;
     background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -214,6 +230,108 @@ a:hover { color: var(--df-ember); }
     color: var(--df-text);
 }
 
+/* ------------------------------ Palette de commandes ------------------------------ */
+
+.df-command-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    padding: 7px 10px;
+    border: 1px solid var(--df-border);
+    border-radius: $border-radius;
+    background: var(--df-bg);
+    color: var(--df-text-faint);
+    font-size: 13px;
+    min-width: 220px;
+    justify-content: space-between;
+
+    &:hover { border-color: var(--df-teal); color: var(--df-text); }
+
+    kbd {
+        font-family: $font-family-mono;
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: var(--df-surface);
+        border: 1px solid var(--df-border);
+        color: var(--df-text-faint);
+    }
+}
+
+.df-command-palette {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+}
+
+.df-command-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.df-command-box {
+    position: relative;
+    width: min(560px, 92vw);
+    background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
+    border: 1px solid var(--df-border);
+    border-radius: $border-radius-lg;
+    box-shadow: var(--df-shadow-lg);
+    overflow: hidden;
+}
+
+.df-command-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--df-border);
+    background: transparent;
+    color: var(--df-text);
+    padding: 16px 18px;
+    font-size: 15px;
+
+    &:focus { outline: none; }
+}
+
+.df-command-results {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.df-command-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: $border-radius;
+    font-size: 14px;
+    color: var(--df-text);
+    cursor: pointer;
+
+    &.active { background: var(--df-ember-tint); color: var(--df-ember-strong); }
+}
+
+.df-command-hint {
+    font-size: 12px;
+    color: var(--df-text-faint);
+}
+
+.df-command-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--df-text-faint);
+    font-size: 13px;
+}
+
 .df-content {
     padding: 24px 28px 48px;
     flex: 1;
@@ -231,6 +349,8 @@ a:hover { color: var(--df-ember); }
 
 .df-card {
     background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
     border: 1px solid var(--df-border);
     border-radius: $border-radius-lg;
     padding: 1.25rem;
@@ -511,7 +631,54 @@ a:hover { color: var(--df-ember); }
     padding: 6px 0 0;
 }
 
+.df-demo-dataset-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: 1px solid var(--df-border);
+    border-radius: $border-radius;
+    background: var(--df-surface);
+    transition: border-color .15s ease, background .15s ease;
+
+    &:hover { border-color: var(--df-teal); background: var(--df-teal-tint); }
+}
+
 /* ---------------------------------- Cards / forms polish ---------------------------------- */
+
+// .btn-primary est compilé par Bootstrap à partir de $primary (Sass, figé à
+// la compilation) - il ne suit donc pas le bleu néon de --df-ember en mode
+// sombre sans cette surcharge explicite via les variables CSS internes de
+// Bootstrap. Le mode clair n'est pas touché : $primary y reste $ember.
+[data-bs-theme="dark"] {
+    .btn-primary {
+        --bs-btn-color: #051019;
+        --bs-btn-bg: var(--df-ember);
+        --bs-btn-border-color: var(--df-ember);
+        --bs-btn-hover-color: #051019;
+        --bs-btn-hover-bg: var(--df-ember-strong);
+        --bs-btn-hover-border-color: var(--df-ember-strong);
+        --bs-btn-active-color: #051019;
+        --bs-btn-active-bg: var(--df-ember-strong);
+        --bs-btn-active-border-color: var(--df-ember-strong);
+        --bs-btn-disabled-bg: var(--df-ember);
+        --bs-btn-disabled-border-color: var(--df-ember);
+        box-shadow: 0 0 20px -4px color-mix(in srgb, var(--df-ember) 55%, transparent);
+    }
+
+    .btn-outline-primary {
+        --bs-btn-color: var(--df-ember);
+        --bs-btn-border-color: var(--df-ember);
+        --bs-btn-hover-color: #051019;
+        --bs-btn-hover-bg: var(--df-ember);
+        --bs-btn-hover-border-color: var(--df-ember);
+        --bs-btn-active-color: #051019;
+        --bs-btn-active-bg: var(--df-ember);
+        --bs-btn-active-border-color: var(--df-ember);
+    }
+}
 
 .form-control, .form-select {
     border-color: var(--df-border-strong);
@@ -532,12 +699,16 @@ a:hover { color: var(--df-ember); }
 
 .modal-content {
     background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
     border: 1px solid var(--df-border);
     box-shadow: var(--df-shadow-lg);
 }
 
 .dropdown-menu {
     background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
     border: 1px solid var(--df-border);
     box-shadow: var(--df-shadow-md);
 }
@@ -595,4 +766,101 @@ a:hover { color: var(--df-ember); }
     font-size: 12px;
     flex-shrink: 0;
     margin-top: 1px;
+}
+
+/* ---------------------------------- Comparer les exécutions ---------------------------------- */
+
+.df-compare-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--df-text-faint);
+    cursor: pointer;
+
+    input { cursor: pointer; }
+}
+
+.df-compare-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--df-surface);
+    backdrop-filter: var(--df-glass-blur);
+    -webkit-backdrop-filter: var(--df-glass-blur);
+    border: 1px solid var(--df-border);
+    border-radius: 999px;
+    box-shadow: var(--df-shadow-lg);
+}
+
+.df-compare-table {
+    width: 100%;
+
+    th, td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--df-border);
+        font-size: 13px;
+        vertical-align: top;
+    }
+
+    th:first-child { text-align: left; white-space: nowrap; }
+    th:not(:first-child), td { text-align: center; }
+}
+
+.df-column-type-badge {
+    border: 1px solid var(--df-border);
+    background: var(--df-surface);
+    color: var(--df-text-faint);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        border-color: var(--df-ember-strong);
+        color: var(--df-ember-strong);
+    }
+}
+
+.df-column-configure-btn {
+    position: relative;
+    border: none;
+    background: transparent;
+    color: var(--df-text-faint);
+    font-size: 11px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--df-ember-tint);
+        color: var(--df-ember-strong);
+    }
+}
+
+.df-column-suggestion-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--df-warning);
+}
+
+.df-column-suggestion-card {
+    border: 1px solid var(--df-border);
+    border-radius: $border-radius;
+    padding: 8px 10px;
+    background: var(--df-surface);
 }

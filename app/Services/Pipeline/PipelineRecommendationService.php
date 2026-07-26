@@ -46,6 +46,7 @@ class PipelineRecommendationService
         ]);
 
         $items = $this->parseItems($result['content']);
+        $plan = $this->parsePlan($result['content']);
 
         // Module Mémoire inter-projets (§6): reinforce with the user's own
         // habits across projects, skipping any column the AI already
@@ -69,6 +70,7 @@ class PipelineRecommendationService
                 'step_type' => $item['step_type'],
                 'params' => $item['params'],
                 'rationale' => $item['rationale'],
+                'plan' => $plan,
                 'status' => PipelineSuggestionStatus::Pending,
                 'computed_at' => now(),
             ]));
@@ -107,7 +109,9 @@ class PipelineRecommendationService
             Tu es un data analyst expert. À partir de l'état réel de cette table ci-dessous (qualité, sémantique des colonnes, contexte métier), propose une liste ORDONNÉE d'étapes de nettoyage/prétraitement concrètes et utiles à appliquer, des plus importantes aux moins importantes.
 
             Réponds en JSON STRICT avec exactement cette forme :
-            {"suggestions": [{"step_type": "...", "params": {...}, "rationale": "justification courte et concrète en français, ex: 91% de valeurs vides, aucune valeur analytique"}, ...]}
+            {"plan": "2-3 phrases en français expliquant ton raisonnement global : ce que tu as observé sur cette table et pourquoi cette séquence d'étapes dans cet ordre précisément", "suggestions": [{"step_type": "...", "params": {...}, "rationale": "justification courte et concrète en français, ex: 91% de valeurs vides, aucune valeur analytique"}, ...]}
+
+            "plan" doit rester factuel et se baser uniquement sur les données fournies - c'est un résumé de ton analyse, pas une liste des suggestions (déjà détaillées dans "suggestions").
 
             "step_type" doit être EXACTEMENT une de ces valeurs : {$manualTypes}.
             "params" doit utiliser EXACTEMENT ces clés selon step_type (n'utilise que des noms de colonnes qui existent réellement dans les données fournies) :
@@ -169,5 +173,22 @@ class PipelineRecommendationService
         }
 
         return $items;
+    }
+
+    /**
+     * Module transparence du plan (inspiré d'OctOpus) : le raisonnement
+     * global de l'IA pour ce lot, affiché au-dessus des suggestions
+     * individuelles - purement informatif, ne change rien à l'exécution.
+     */
+    private function parsePlan(string $content): ?string
+    {
+        $content = trim($content);
+        $content = preg_replace('/^```(json)?/i', '', $content);
+        $content = preg_replace('/```$/', '', trim($content));
+        $decoded = json_decode(trim($content), true);
+
+        $plan = is_array($decoded) ? ($decoded['plan'] ?? null) : null;
+
+        return is_string($plan) && trim($plan) !== '' ? trim($plan) : null;
     }
 }

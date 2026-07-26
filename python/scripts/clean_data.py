@@ -14,7 +14,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from common.io_utils import overwrite_table_cache, read_table_cache  # noqa: E402
 from common.json_utils import as_dict, run_script  # noqa: E402
-from common.type_detection import detect_column  # noqa: E402
+from common.type_detection import detect_column, is_numeric_series  # noqa: E402
 
 
 def main(input_data: dict) -> dict:
@@ -97,6 +97,17 @@ def _fix_case(df: pd.DataFrame, params: dict) -> tuple[pd.DataFrame, int]:
 def _fix_dates(df: pd.DataFrame, params: dict) -> tuple[pd.DataFrame, int]:
     column = params["column"]
     original = df[column]
+
+    # pd.to_datetime() never fails on a numeric column - it silently
+    # reinterprets each value as a nanosecond-since-epoch offset (age 25
+    # becomes 1970-01-01T00:00:00.000000025), corrupting the column instead
+    # of raising. Refuse explicitly rather than silently destroying real data.
+    if is_numeric_series(original):
+        raise ValueError(
+            f"La colonne « {column} » est numérique, pas une date - "
+            "« Corriger les dates » ne peut pas s'y appliquer."
+        )
+
     parsed = pd.to_datetime(original, errors="coerce", format="mixed")
 
     original_str = original.astype(str).str.strip()

@@ -50,7 +50,7 @@ class MlAnalysisController extends Controller
 
         return redirect()
             ->route('projects.datasets.tables.ml.show', [$project, $dataset, $table])
-            ->with('status', 'Analyse calculée.');
+            ->with('status', 'Analyse en cours de calcul...');
     }
 
     public function destroy(Project $project, Dataset $dataset, DatasetTable $table, MlAnalysis $mlAnalysis): RedirectResponse

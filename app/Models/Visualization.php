@@ -19,6 +19,7 @@ class Visualization extends Model
         'chart_type',
         'config',
         'data_cache',
+        'error',
         'source',
         'rationale',
     ];

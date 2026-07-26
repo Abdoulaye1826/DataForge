@@ -8,6 +8,7 @@ use App\Repositories\Contracts\AiInsightRepositoryInterface;
 use App\Repositories\Contracts\AnalysisRepositoryInterface;
 use App\Repositories\Contracts\DashboardRepositoryInterface;
 use App\Repositories\Contracts\DashboardWidgetRepositoryInterface;
+use App\Repositories\Contracts\DatabaseConnectionRepositoryInterface;
 use App\Repositories\Contracts\DatasetRelationshipRepositoryInterface;
 use App\Repositories\Contracts\DatasetRepositoryInterface;
 use App\Repositories\Contracts\DatasetTableRepositoryInterface;
@@ -26,6 +27,7 @@ use App\Repositories\Eloquent\EloquentAiInsightRepository;
 use App\Repositories\Eloquent\EloquentAnalysisRepository;
 use App\Repositories\Eloquent\EloquentDashboardRepository;
 use App\Repositories\Eloquent\EloquentDashboardWidgetRepository;
+use App\Repositories\Eloquent\EloquentDatabaseConnectionRepository;
 use App\Repositories\Eloquent\EloquentDatasetRelationshipRepository;
 use App\Repositories\Eloquent\EloquentDatasetRepository;
 use App\Repositories\Eloquent\EloquentDatasetTableRepository;
@@ -65,6 +67,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(MlAnalysisRepositoryInterface::class, EloquentMlAnalysisRepository::class);
         $this->app->bind(PipelineSuggestionRepositoryInterface::class, EloquentPipelineSuggestionRepository::class);
         $this->app->bind(UserPipelinePreferenceRepositoryInterface::class, EloquentUserPipelinePreferenceRepository::class);
+        $this->app->bind(DatabaseConnectionRepositoryInterface::class, EloquentDatabaseConnectionRepository::class);
     }
 
     /**

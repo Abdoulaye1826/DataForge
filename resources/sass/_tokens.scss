@@ -37,34 +37,59 @@
     --df-shadow-sm: #{$box-shadow-sm};
     --df-shadow-md: #{$box-shadow};
     --df-shadow-lg: #{$box-shadow-lg};
+
+    // Property value tokens (not colors) - overridden to real values only in
+    // dark mode (see below), so components can apply them unconditionally.
+    // --df-glass-blur stands alone (backdrop-filter: none is valid), but
+    // --df-glow-ring is meant to sit in a comma-separated box-shadow list
+    // alongside --df-shadow-* - "none" is not a legal list item there (it
+    // would invalidate the whole property), so it falls back to a fully
+    // transparent zero-size shadow instead, which is.
+    --df-glass-blur: none;
+    --df-glow-ring: 0 0 0 0 transparent;
 }
 
+// Thème sombre "console holographique" : fonds bleu-nuit profond, panneaux
+// vitrés (surface translucide + --df-glass-blur), accent bleu électrique à
+// la place du cuivre - inspiré d'une référence visuelle fournie par
+// l'utilisateur (dashboard futuriste bleu néon). Uniquement le mode sombre :
+// le mode clair (:root ci-dessus) reste inchangé à dessein.
 [data-bs-theme="dark"] {
-    --df-bg: #101317;
-    --df-surface: #171b21;
-    --df-surface-2: #1e232a;
-    --df-surface-3: #262c34;
-    --df-border: #2b3138;
-    --df-border-strong: #383f48;
-    --df-text: #edeef0;
-    --df-text-muted: #9aa3ad;
-    --df-text-faint: #6b7480;
+    --df-bg: #060912;
+    --df-surface: rgba(19, 28, 46, 0.72);
+    --df-surface-2: rgba(14, 21, 36, 0.85);
+    --df-surface-3: rgba(26, 37, 58, 0.65);
+    --df-border: rgba(96, 200, 255, 0.16);
+    --df-border-strong: rgba(112, 206, 255, 0.32);
+    --df-text: #e6f1fb;
+    --df-text-muted: #93a9c4;
+    --df-text-faint: #5f7796;
 
-    --df-ember: #f0954a;
-    --df-ember-strong: #f7b274;
-    --df-ember-tint: #2e2115;
-    --df-teal: #4fbbaa;
-    --df-teal-tint: #16302c;
-    --df-success: #3cb273;
-    --df-success-tint: #163827;
-    --df-warning: #e0b44e;
-    --df-warning-tint: #382d14;
-    --df-error: #e36565;
-    --df-error-tint: #3a1e1e;
-    --df-info: #6fa0d6;
-    --df-info-tint: #1b2a3a;
+    --df-ember: #3ea6ff;
+    --df-ember-strong: #7dd3ff;
+    --df-ember-tint: rgba(62, 166, 255, 0.14);
+    --df-teal: #45d4c4;
+    --df-teal-tint: rgba(69, 212, 196, 0.12);
+    --df-success: #3ddc9a;
+    --df-success-tint: rgba(61, 220, 154, 0.12);
+    --df-warning: #f0c25e;
+    --df-warning-tint: rgba(240, 194, 94, 0.12);
+    --df-error: #ff6b7f;
+    --df-error-tint: rgba(255, 107, 127, 0.12);
+    --df-info: #7dd3ff;
+    --df-info-tint: rgba(125, 211, 255, 0.12);
 
-    --df-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --df-shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
-    --df-shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
+    // Sur ce fond, une carte "flotte" grâce à un halo bleu plutôt qu'une
+    // simple ombre noire - c'est ce qui vend le look "holographique" sans
+    // toucher au balisage : tout composant qui lit déjà var(--df-shadow-*)
+    // en profite automatiquement.
+    --df-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(96, 200, 255, 0.05);
+    --df-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55), 0 0 28px -6px rgba(62, 166, 255, 0.22);
+    --df-shadow-lg: 0 24px 56px -16px rgba(0, 0, 0, 0.65), 0 0 48px -10px rgba(62, 166, 255, 0.3);
+
+    // Property value tokens (not colors) - "none" in light mode makes these
+    // safe to apply unconditionally wherever a glass panel needs them,
+    // without a single [data-bs-theme="dark"] override per component.
+    --df-glass-blur: blur(18px);
+    --df-glow-ring: 0 0 0 1px rgba(96, 200, 255, 0.2), 0 0 20px rgba(62, 166, 255, 0.18);
 }

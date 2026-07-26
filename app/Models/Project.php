@@ -48,6 +48,17 @@ class Project extends Model
         return $this->hasMany(Dataset::class);
     }
 
+    /**
+     * Nommée "connections" (pas "databaseConnections") pour matcher le
+     * paramètre de route {connection} - scopeBindings() résout le binding
+     * imbriqué en cherchant une relation nommée d'après le pluriel du nom du
+     * paramètre enfant, voir routes/web.php.
+     */
+    public function connections(): HasMany
+    {
+        return $this->hasMany(DatabaseConnection::class);
+    }
+
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);

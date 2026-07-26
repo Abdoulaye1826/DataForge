@@ -119,7 +119,7 @@ class PythonRunnerService
 
             $result = PythonScriptResult::fromDecodedPayload($decoded, $durationMs);
 
-            $this->logExecution($projectId, $script, $payload, $decoded, $result->success ? 'success' : 'error', $durationMs, $result->error);
+            $this->logExecution($projectId, $script, $this->redactSecrets($payload), $decoded, $result->success ? 'success' : 'error', $durationMs, $result->error);
 
             if (! $result->success) {
                 throw new PythonExecutionException(
@@ -133,7 +133,7 @@ class PythonRunnerService
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
             $stderr = $process->getErrorOutput();
 
-            $this->logExecution($projectId, $script, $payload, null, 'error', $durationMs, $stderr);
+            $this->logExecution($projectId, $script, $this->redactSecrets($payload), null, 'error', $durationMs, $stderr);
 
             throw new PythonExecutionException(
                 "Script {$script} failed (exit code {$process->getExitCode()}).",
@@ -178,5 +178,25 @@ class PythonRunnerService
         }
 
         return mb_scrub($value, 'UTF-8');
+    }
+
+    /**
+     * Scripts that connect to an external database (see db_list_tables.py,
+     * db_import_table.py) receive the connection's plaintext password in
+     * their input payload - it must reach the Python process, but never the
+     * python_executions audit trail. Masks any 'password' key at any nesting
+     * depth before logging.
+     */
+    private function redactSecrets(array $payload): array
+    {
+        foreach ($payload as $key => $value) {
+            if ($key === 'password') {
+                $payload[$key] = '••••••••';
+            } elseif (is_array($value)) {
+                $payload[$key] = $this->redactSecrets($value);
+            }
+        }
+
+        return $payload;
     }
 }

@@ -57,16 +57,16 @@ class VisualizationController extends Controller
 
         return redirect()
             ->route('projects.datasets.tables.visualizations.index', [$project, $dataset, $table])
-            ->with('status', 'Visualisation créée.');
+            ->with('status', 'Visualisation en cours de création...');
     }
 
     public function refresh(Project $project, Dataset $dataset, DatasetTable $table, Visualization $visualization): RedirectResponse
     {
         $this->authorize('update', $project);
 
-        $this->visualizationService->refresh($visualization, $table, $project);
+        $this->visualizationService->refresh($visualization);
 
-        return back()->with('status', 'Visualisation actualisée.');
+        return back()->with('status', 'Visualisation en cours d\'actualisation...');
     }
 
     public function destroy(Project $project, Dataset $dataset, DatasetTable $table, Visualization $visualization): RedirectResponse
