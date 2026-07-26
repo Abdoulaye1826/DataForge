@@ -1,0 +1,10 @@
+import './bootstrap';
+import './transform-modal';
+import './charts';
+import './dashboard-builder';
+import './data-grid';
+import './dashboard-filter';
+import './theme-toggle';
+import './dropzone';
+import './insight-view-toggle';
+import './insight-action-prefill';

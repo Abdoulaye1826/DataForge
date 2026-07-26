@@ -1,0 +1,70 @@
+// Runtime design tokens (CSS custom properties) — Sass variables are
+// compile-time constants and can't react to a theme switch, so anything
+// that needs to change between light/dark lives here instead. Components
+// should read var(--df-*), never the Sass color variables directly.
+//
+// Two layers: :root is the light default, [data-bs-theme="dark"] overrides
+// it. theme-toggle.js resolves the effective theme (stored choice, else
+// system preference) and sets data-bs-theme synchronously before first
+// paint, so there's no separate "system preference" CSS branch to keep in
+// sync - by the time styles apply, the attribute already says light or dark.
+
+:root {
+    --df-bg: #{$paper};
+    --df-surface: #ffffff;
+    --df-surface-2: #{$light};
+    --df-surface-3: #e4e7ec;
+    --df-border: #{$border-color};
+    --df-border-strong: #c7ccd3;
+    --df-text: #{$ink};
+    --df-text-muted: #{$steel};
+    --df-text-faint: #89919b;
+
+    --df-ember: #{$ember};
+    --df-ember-strong: #{$ember-strong};
+    --df-ember-tint: #fceada;
+    --df-teal: #{$teal};
+    --df-teal-tint: #dcf0ec;
+    --df-success: #{$success};
+    --df-success-tint: #e1f3e8;
+    --df-warning: #{$warning};
+    --df-warning-tint: #fbf0da;
+    --df-error: #{$danger};
+    --df-error-tint: #fbe4e4;
+    --df-info: #{$info};
+    --df-info-tint: #e3ecf6;
+
+    --df-shadow-sm: #{$box-shadow-sm};
+    --df-shadow-md: #{$box-shadow};
+    --df-shadow-lg: #{$box-shadow-lg};
+}
+
+[data-bs-theme="dark"] {
+    --df-bg: #101317;
+    --df-surface: #171b21;
+    --df-surface-2: #1e232a;
+    --df-surface-3: #262c34;
+    --df-border: #2b3138;
+    --df-border-strong: #383f48;
+    --df-text: #edeef0;
+    --df-text-muted: #9aa3ad;
+    --df-text-faint: #6b7480;
+
+    --df-ember: #f0954a;
+    --df-ember-strong: #f7b274;
+    --df-ember-tint: #2e2115;
+    --df-teal: #4fbbaa;
+    --df-teal-tint: #16302c;
+    --df-success: #3cb273;
+    --df-success-tint: #163827;
+    --df-warning: #e0b44e;
+    --df-warning-tint: #382d14;
+    --df-error: #e36565;
+    --df-error-tint: #3a1e1e;
+    --df-info: #6fa0d6;
+    --df-info-tint: #1b2a3a;
+
+    --df-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --df-shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+    --df-shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.4);
+}

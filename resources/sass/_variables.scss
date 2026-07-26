@@ -1,0 +1,52 @@
+// DataForge design tokens — "forger la donnée en décision": the precision of
+// an analysis instrument, the warmth of a workshop. A cool neutral base
+// (never pure white), one copper accent for action (never a wash), a deep
+// teal as counterweight for data/links. Semantic colors (success/warning/
+// error/info) stay deliberately distinct from the accent so a badge is
+// never mistaken for a brand action.
+
+// Brand
+$ink: #14171c;
+$paper: #f6f7f9;
+$ember: #dd7a1f;
+$ember-strong: #b8630f;
+$teal: #1f7a6c;
+$steel: #5b6472;
+
+// Bootstrap color system
+$primary: $ember;
+$secondary: $steel;
+$success: #22935a;
+$info: #3b6fa6;
+$warning: #c99a2e;
+$danger: #d14343;
+$light: #eef0f3;
+$dark: $ink;
+
+$body-bg: $paper;
+$body-color: $ink;
+
+// Typography — three registers, never interchangeable: Fraunces carries
+// personality (page titles, big stat numbers), Inter carries the interface
+// (labels, body, buttons), JetBrains Mono carries data (ids, tabular
+// values). See app.scss for the @font-face imports.
+$font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-display: 'Fraunces', Georgia, serif;
+$font-family-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+$font-size-base: 0.875rem;
+$line-height-base: 1.55;
+$headings-font-weight: 600;
+
+// Flatter surfaces: smaller radius, thin borders instead of heavy shadows.
+$border-radius: 0.5rem;
+$border-radius-sm: 0.375rem;
+$border-radius-lg: 0.75rem;
+$border-color: #e1e4e9;
+$box-shadow-sm: 0 1px 2px rgba(20, 23, 28, 0.05);
+$box-shadow: 0 4px 12px -2px rgba(20, 23, 28, 0.08), 0 2px 4px -2px rgba(20, 23, 28, 0.04);
+$box-shadow-lg: 0 12px 32px -8px rgba(20, 23, 28, 0.14), 0 4px 8px -4px rgba(20, 23, 28, 0.06);
+
+$enable-shadows: false;
+$enable-gradients: false;
+$enable-dark-mode: true;
+$color-mode-type: data;

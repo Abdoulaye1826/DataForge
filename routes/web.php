@@ -1,0 +1,113 @@
+<?php
+
+use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\AnalysisController;
+use App\Http\Controllers\DashboardBuilderController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardWidgetController;
+use App\Http\Controllers\DatasetController;
+use App\Http\Controllers\DatasetImportController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\MlAnalysisController;
+use App\Http\Controllers\NotebookController;
+use App\Http\Controllers\PipelineStepController;
+use App\Http\Controllers\PipelineSuggestionController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\QualityController;
+use App\Http\Controllers\RelationshipController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\StatisticalTestController;
+use App\Http\Controllers\TableDataController;
+use App\Http\Controllers\VisualizationController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+});
+
+Auth::routes();
+
+Route::middleware('auth')->group(function () {
+    Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('projects', ProjectController::class)->except(['create', 'edit']);
+
+    Route::prefix('projects/{project}')->name('projects.')->scopeBindings()->group(function () {
+        Route::get('notebook', [NotebookController::class, 'show'])->name('notebook.show');
+        Route::post('notebook/replay', [NotebookController::class, 'replay'])->name('notebook.replay');
+
+        Route::get('assistant', [AiAssistantController::class, 'index'])->name('assistant.index');
+        Route::post('assistant/conversations', [AiAssistantController::class, 'storeConversation'])->name('assistant.conversations.store');
+        Route::post('assistant/conversations/{aiConversation}/messages', [AiAssistantController::class, 'storeMessage'])->name('assistant.messages.store');
+
+        Route::get('dashboards', [DashboardBuilderController::class, 'index'])->name('dashboards.index');
+        Route::post('dashboards', [DashboardBuilderController::class, 'store'])->name('dashboards.store');
+        Route::get('dashboards/{dashboard}', [DashboardBuilderController::class, 'show'])->name('dashboards.show');
+        Route::post('dashboards/{dashboard}/duplicate', [DashboardBuilderController::class, 'duplicate'])->name('dashboards.duplicate');
+        Route::delete('dashboards/{dashboard}', [DashboardBuilderController::class, 'destroy'])->name('dashboards.destroy');
+
+        Route::prefix('dashboards/{dashboard}')->name('dashboards.')->group(function () {
+            Route::post('widgets', [DashboardWidgetController::class, 'store'])->name('widgets.store');
+            Route::put('widgets/{widget}', [DashboardWidgetController::class, 'update'])->name('widgets.update');
+            Route::delete('widgets/{widget}', [DashboardWidgetController::class, 'destroy'])->name('widgets.destroy');
+            Route::get('widgets/{widget}/data', [DashboardWidgetController::class, 'data'])->name('widgets.data');
+        });
+
+        Route::post('datasets/import', [DatasetImportController::class, 'store'])->name('datasets.import');
+        Route::get('datasets/{dataset}', [DatasetController::class, 'show'])->name('datasets.show');
+        Route::post('datasets/{dataset}/reimport', [DatasetController::class, 'reimport'])->name('datasets.reimport');
+        Route::delete('datasets/{dataset}', [DatasetController::class, 'destroy'])->name('datasets.destroy');
+
+        Route::get('relationships', [RelationshipController::class, 'index'])->name('relationships.index');
+        Route::post('relationships/{relationship}/confirm', [RelationshipController::class, 'confirm'])->name('relationships.confirm');
+        Route::post('relationships/{relationship}/reject', [RelationshipController::class, 'reject'])->name('relationships.reject');
+        Route::post('relationships/{relationship}/join', [RelationshipController::class, 'join'])->name('relationships.join');
+
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::post('reports', [ReportController::class, 'store'])->name('reports.store');
+        Route::get('reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
+        Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+
+        Route::prefix('datasets/{dataset}')->name('datasets.')->group(function () {
+            Route::get('tables/{table}/quality', [QualityController::class, 'show'])->name('tables.quality.show');
+            Route::post('tables/{table}/quality/refresh', [QualityController::class, 'refresh'])->name('tables.quality.refresh');
+            Route::post('tables/{table}/pipeline-steps', [PipelineStepController::class, 'store'])->name('tables.pipeline-steps.store');
+
+            Route::post('tables/{table}/pipeline-suggestions', [PipelineSuggestionController::class, 'store'])->name('tables.pipeline-suggestions.store');
+            Route::post('tables/{table}/pipeline-suggestions/accept-all', [PipelineSuggestionController::class, 'acceptAll'])->name('tables.pipeline-suggestions.accept-all');
+            Route::post('tables/{table}/pipeline-suggestions/{pipelineSuggestion}/accept', [PipelineSuggestionController::class, 'accept'])->name('tables.pipeline-suggestions.accept');
+            Route::post('tables/{table}/pipeline-suggestions/{pipelineSuggestion}/reject', [PipelineSuggestionController::class, 'reject'])->name('tables.pipeline-suggestions.reject');
+
+            Route::get('tables/{table}/analysis', [AnalysisController::class, 'show'])->name('tables.analysis.show');
+            Route::post('tables/{table}/analysis/run', [AnalysisController::class, 'run'])->name('tables.analysis.run');
+
+            Route::post('tables/{table}/statistical-tests', [StatisticalTestController::class, 'store'])->name('tables.statistical-tests.store');
+            Route::delete('tables/{table}/statistical-tests/{statisticalTest}', [StatisticalTestController::class, 'destroy'])->name('tables.statistical-tests.destroy');
+
+            Route::get('tables/{table}/ml', [MlAnalysisController::class, 'show'])->name('tables.ml.show');
+            Route::post('tables/{table}/ml', [MlAnalysisController::class, 'store'])->name('tables.ml.store');
+            Route::delete('tables/{table}/ml/{mlAnalysis}', [MlAnalysisController::class, 'destroy'])->name('tables.ml.destroy');
+
+            Route::get('tables/{table}/export', [ExportController::class, 'table'])->name('tables.export');
+
+            Route::get('tables/{table}/data', [TableDataController::class, 'show'])->name('tables.data.show');
+            Route::get('tables/{table}/data/rows', [TableDataController::class, 'rows'])->name('tables.data.rows');
+
+            Route::get('tables/{table}/visualizations', [VisualizationController::class, 'index'])->name('tables.visualizations.index');
+            Route::post('tables/{table}/visualizations', [VisualizationController::class, 'store'])->name('tables.visualizations.store');
+            Route::post('tables/{table}/visualizations/{visualization}/refresh', [VisualizationController::class, 'refresh'])->name('tables.visualizations.refresh');
+            Route::delete('tables/{table}/visualizations/{visualization}', [VisualizationController::class, 'destroy'])->name('tables.visualizations.destroy');
+        });
+    });
+});
