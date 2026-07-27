@@ -22,6 +22,14 @@ class EloquentPipelineSuggestionRepository implements PipelineSuggestionReposito
             ->get();
     }
 
+    public function pendingForTables(array $datasetTableIds): Collection
+    {
+        return PipelineSuggestion::whereIn('dataset_table_id', $datasetTableIds)
+            ->where('status', PipelineSuggestionStatus::Pending)
+            ->orderBy('id')
+            ->get();
+    }
+
     public function pendingForUser(int $userId, int $limit): Collection
     {
         return PipelineSuggestion::where('status', PipelineSuggestionStatus::Pending)

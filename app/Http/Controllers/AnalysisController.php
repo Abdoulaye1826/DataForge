@@ -19,10 +19,14 @@ class AnalysisController extends Controller
     {
         $this->authorize('view', $project);
 
+        // aiInsights.table.dataset + aiInsights.project are for
+        // <x-insight-action-button>, which builds a route per insight.
+        $table->load('columns', 'aiInsights.table.dataset', 'aiInsights.project');
+
         return view('analysis.show', [
             'project' => $project,
             'dataset' => $dataset,
-            'table' => $table->load('columns'),
+            'table' => $table,
             'analysis' => $table->latestAnalysis,
             'insights' => $table->aiInsights,
             'statisticalTests' => $table->statisticalTests,

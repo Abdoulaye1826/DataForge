@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
         Route::get('database-connections/{connection}/tables', [DatabaseConnectionController::class, 'tables'])->name('database-connections.tables')->middleware('throttle:heavy');
         Route::post('database-connections/{connection}/import', [DatabaseConnectionController::class, 'import'])->name('database-connections.import')->middleware('throttle:heavy');
         Route::get('datasets/{dataset}', [DatasetController::class, 'show'])->name('datasets.show');
+        Route::get('datasets/{dataset}/intelligence', [DatasetController::class, 'intelligence'])->name('datasets.intelligence');
         Route::post('datasets/{dataset}/reimport', [DatasetController::class, 'reimport'])->name('datasets.reimport')->middleware('throttle:heavy');
         Route::delete('datasets/{dataset}', [DatasetController::class, 'destroy'])->name('datasets.destroy');
 

@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Models\Analysis;
+use App\Models\Dataset;
 use App\Models\DatasetTable;
 use App\Models\Project;
 use App\Models\QualityReport;
@@ -191,6 +192,32 @@ class AiContextBuilder
                 $column->distinct_count,
                 $column->is_useless ? ', marquée peu utile' : '',
             );
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Module Détection de domaine: every table of the dataset, its columns'
+     * technical name + semantic label (when already computed) + a few
+     * sample values - deliberately WITHOUT the project's own business
+     * context, so the detected domain is grounded purely in the data itself
+     * rather than echoing back whatever the user already typed at project
+     * creation (§1). The two are meant to cross-check each other.
+     */
+    public function datasetContextForDomainDetection(Dataset $dataset): string
+    {
+        $lines = ["Dataset « {$dataset->name} » :"];
+
+        foreach ($dataset->tables as $table) {
+            $lines[] = '';
+            $lines[] = "Table « {$table->name} » ({$table->row_count} lignes) :";
+
+            foreach ($table->columns as $column) {
+                $samples = collect($column->sample_values ?? [])->take(3)->implode(', ');
+                $label = $column->semantic_label ? " (sens probable : {$column->semantic_label})" : '';
+                $lines[] = "- {$column->name}{$label} : exemples = [{$samples}]";
+            }
         }
 
         return implode("\n", $lines);

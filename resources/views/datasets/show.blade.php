@@ -28,6 +28,9 @@
     </div>
 
     <div class="d-flex gap-2">
+        <a href="{{ route('projects.datasets.intelligence', [$project, $dataset]) }}" class="btn btn-primary btn-sm">
+            <span class="df-ic">✦</span> Rapport d'intelligence
+        </a>
         @unless ($dataset->format === \App\Enums\DatasetFormat::Derived)
             <form method="POST" action="{{ route('projects.datasets.reimport', [$project, $dataset]) }}" onsubmit="return confirm('Retraiter ce fichier depuis le début ? Les tables, colonnes et analyses actuelles seront remplacées.');">
                 @csrf

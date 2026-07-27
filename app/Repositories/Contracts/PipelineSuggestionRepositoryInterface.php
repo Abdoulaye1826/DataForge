@@ -12,6 +12,14 @@ interface PipelineSuggestionRepositoryInterface
     public function pendingForTable(int $datasetTableId): Collection;
 
     /**
+     * Pending suggestions across several tables at once, for the Dataset
+     * Intelligence report.
+     *
+     * @param array<int, int> $datasetTableIds
+     */
+    public function pendingForTables(array $datasetTableIds): Collection;
+
+    /**
      * Pending suggestions across every project owned by the user, for the
      * Workspace intelligence feed.
      */

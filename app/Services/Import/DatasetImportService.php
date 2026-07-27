@@ -15,6 +15,7 @@ use App\Repositories\Contracts\DatasetRepositoryInterface;
 use App\Repositories\Contracts\DatasetTableRepositoryInterface;
 use App\Repositories\Contracts\PipelineStepRepositoryInterface;
 use App\Services\Activity\ActivityLogService;
+use App\Services\Ai\DomainDetectionService;
 use App\Services\Pipeline\TableOnboardingService;
 use App\Services\Python\PythonRunnerService;
 use App\Services\Quality\RelationshipDetectionService;
@@ -44,6 +45,7 @@ class DatasetImportService
         private readonly PipelineStepRepositoryInterface $pipelineSteps,
         private readonly TableOnboardingService $onboarding,
         private readonly DatabaseConnectionService $databaseConnections,
+        private readonly DomainDetectionService $domainDetection,
     ) {
     }
 
@@ -134,7 +136,7 @@ class DatasetImportService
     public function processDataset(Dataset $dataset, Project $project, string $action, string $verb): void
     {
         try {
-            [$tables, $skippedSheets] = $this->readTables($dataset, $dataset->format);
+            [$tables, $skippedSheets, $fileMeta] = $this->readTables($dataset, $dataset->format);
 
             foreach ($tables as $tableData) {
                 $datasetTable = $this->datasetTables->create([
@@ -156,9 +158,14 @@ class DatasetImportService
 
             $this->datasets->update($dataset, [
                 'status' => DatasetStatus::Imported,
-                'import_meta' => ['tables_count' => count($tables), 'skipped_sheets' => $skippedSheets],
+                'import_meta' => [
+                    'tables_count' => count($tables),
+                    'skipped_sheets' => $skippedSheets,
+                    'file_meta' => $fileMeta,
+                ],
             ]);
 
+            $this->domainDetection->detectSafely($dataset);
             $this->relationshipDetection->detectForProject($project);
 
             $message = "Dataset « {$dataset->name} » {$verb} (" . count($tables) . ' table(s)).';
@@ -178,14 +185,16 @@ class DatasetImportService
     }
 
     /**
-     * @return array{0: array<int, array{name: string, row_count: int, column_count: int, storage_path: string}>, 1: array<int, string>}
+     * @return array{0: array<int, array{name: string, row_count: int, column_count: int, storage_path: string}>, 1: array<int, string>, 2: array<string, mixed>}
      */
     private function readTables(Dataset $dataset, DatasetFormat $format): array
     {
         $outputDir = storage_path("app/datasets/{$dataset->id}/tables");
 
         if ($format === DatasetFormat::Sql) {
-            return [[$this->readTableFromDatabase($dataset, $outputDir)], []];
+            // A live database table has no file-level encoding/delimiter/
+            // sheet-count concept.
+            return [[$this->readTableFromDatabase($dataset, $outputDir)], [], []];
         }
 
         $result = $this->pythonRunner->run('import_dataset.py', [
@@ -198,7 +207,7 @@ class DatasetImportService
             'default_name' => pathinfo($dataset->original_filename, PATHINFO_FILENAME),
         ], $dataset->project_id);
 
-        return [$result->data['tables'], $result->data['skipped_sheets'] ?? []];
+        return [$result->data['tables'], $result->data['skipped_sheets'] ?? [], $result->data['file_meta'] ?? []];
     }
 
     /**

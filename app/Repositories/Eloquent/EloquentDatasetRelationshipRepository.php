@@ -21,6 +21,15 @@ class EloquentDatasetRelationshipRepository implements DatasetRelationshipReposi
             ->get();
     }
 
+    public function forTables(array $tableIds): Collection
+    {
+        return DatasetRelationship::where(fn ($query) => $query
+                ->whereIn('source_table_id', $tableIds)
+                ->orWhereIn('target_table_id', $tableIds))
+            ->with(['sourceTable.dataset', 'sourceColumn', 'targetTable.dataset', 'targetColumn'])
+            ->get();
+    }
+
     public function create(array $attributes): DatasetRelationship
     {
         return DatasetRelationship::create($attributes);

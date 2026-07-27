@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DatasetFormat;
 use App\Enums\DatasetStatus;
+use App\Enums\ProjectDomain;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,12 +26,16 @@ class Dataset extends Model
         'size_bytes',
         'status',
         'import_meta',
+        'detected_domain',
+        'detected_domain_confidence',
     ];
 
     protected $casts = [
         'format' => DatasetFormat::class,
         'status' => DatasetStatus::class,
         'import_meta' => 'array',
+        'detected_domain' => ProjectDomain::class,
+        'detected_domain_confidence' => 'float',
     ];
 
     public function project(): BelongsTo

@@ -7,13 +7,16 @@ use App\Exceptions\UnsupportedFileFormatException;
 use App\Models\Dataset;
 use App\Models\Project;
 use App\Services\Import\DatasetImportService;
+use App\Services\Intelligence\DatasetIntelligenceReportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class DatasetController extends Controller
 {
-    public function __construct(private readonly DatasetImportService $datasetImport)
-    {
+    public function __construct(
+        private readonly DatasetImportService $datasetImport,
+        private readonly DatasetIntelligenceReportService $intelligenceReport,
+    ) {
     }
 
     public function show(Project $project, Dataset $dataset): View
@@ -22,7 +25,24 @@ class DatasetController extends Controller
 
         return view('datasets.show', [
             'project' => $project,
-            'dataset' => $dataset->load('tables.columns', 'tables.latestQualityReport', 'tables.aiInsights'),
+            // aiInsights.table.dataset + aiInsights.project are for
+            // <x-insight-action-button>, which builds a route per insight.
+            'dataset' => $dataset->load(
+                'tables.columns',
+                'tables.latestQualityReport',
+                'tables.aiInsights.table.dataset',
+                'tables.aiInsights.project',
+            ),
+        ]);
+    }
+
+    public function intelligence(Project $project, Dataset $dataset): View
+    {
+        $this->authorize('view', $project);
+
+        return view('datasets.intelligence', [
+            'project' => $project,
+            'report' => $this->intelligenceReport->build($dataset),
         ]);
     }
 

@@ -21,7 +21,7 @@ def main(input_data: dict) -> dict:
     output_dir = input_data["output_dir"]
     default_name = input_data.get("default_name")
 
-    tables = read_source_tables(source_path, fmt, default_name)
+    tables, file_meta = read_source_tables(source_path, fmt, default_name)
 
     results = []
     skipped = []
@@ -45,7 +45,7 @@ def main(input_data: dict) -> dict:
     if not results:
         raise ValueError("Aucune table exploitable trouvée dans le fichier (toutes les feuilles sont vides).")
 
-    return {"tables": results, "skipped_sheets": skipped}
+    return {"tables": results, "skipped_sheets": skipped, "file_meta": file_meta}
 
 
 if __name__ == "__main__":
