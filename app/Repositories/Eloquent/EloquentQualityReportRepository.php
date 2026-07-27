@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\QualityReport;
 use App\Repositories\Contracts\QualityReportRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class EloquentQualityReportRepository implements QualityReportRepositoryInterface
 {
@@ -32,5 +33,21 @@ class EloquentQualityReportRepository implements QualityReportRepositoryInterfac
             ->avg('score');
 
         return $avg !== null ? (float) $avg : null;
+    }
+
+    public function poorForUser(int $userId, int $limit): Collection
+    {
+        $latestIds = QualityReport::query()
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('dataset_table_id')
+            ->pluck('id');
+
+        return QualityReport::whereIn('id', $latestIds)
+            ->where('score', '<', 75)
+            ->whereHas('table.dataset.project', fn ($query) => $query->where('user_id', $userId))
+            ->with('table.dataset.project')
+            ->orderBy('score')
+            ->limit($limit)
+            ->get();
     }
 }

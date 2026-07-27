@@ -1,8 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Mot de passe oublié')
+
 @section('content')
-<h1 class="h5 fw-bold mb-1">Mot de passe oublié</h1>
-<p class="text-secondary mb-4">Recevez un lien de réinitialisation par e-mail.</p>
+<h1 class="df-auth-title">Mot de passe oublié</h1>
+<p class="df-auth-subtitle">Indiquez votre e-mail, nous vous envoyons un lien de réinitialisation.</p>
 
 @if (session('status'))
     <div class="alert alert-success" role="alert">{{ session('status') }}</div>

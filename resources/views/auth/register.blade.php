@@ -1,8 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Créer un compte')
+
 @section('content')
-<h1 class="h5 fw-bold mb-1">Créer un compte</h1>
-<p class="text-secondary mb-4">Démarrez votre espace de travail DataForge.</p>
+<h1 class="df-auth-title">Créez votre espace</h1>
+<p class="df-auth-subtitle">Commencez à analyser vos données en quelques minutes.</p>
 
 <form method="POST" action="{{ route('register') }}">
     @csrf

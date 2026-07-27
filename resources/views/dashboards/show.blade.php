@@ -13,6 +13,15 @@
         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addWidgetModal">
             Ajouter un widget
         </button>
+        <form method="POST" action="{{ route('projects.visualization-suggestions.store', $project) }}">
+            @csrf
+            <input type="hidden" name="dashboard_id" value="{{ $dashboard->id }}">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Suggestions IA</button>
+        </form>
+        <form method="POST" action="{{ route('projects.dashboards.export', [$project, $dashboard]) }}">
+            @csrf
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Exporter en PDF</button>
+        </form>
         <form method="POST" action="{{ route('projects.dashboards.duplicate', [$project, $dashboard]) }}">
             @csrf
             <button type="submit" class="btn btn-outline-secondary btn-sm">Dupliquer</button>
@@ -30,6 +39,40 @@
         @foreach ($errors->all() as $error)
             <div>{{ $error }}</div>
         @endforeach
+    </div>
+@endif
+
+@if ($visualizationSuggestions->isNotEmpty())
+    <div class="df-card bg-body-tertiary mb-3">
+        <h3 class="small fw-bold mb-2">🧠 Suggestions IA — visualisations à créer</h3>
+        <ul class="list-unstyled mb-0 small">
+            @foreach ($visualizationSuggestions as $suggestion)
+                <li class="d-flex justify-content-between align-items-start gap-2 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                    <div>
+                        <div class="fw-semibold">
+                            {{ $suggestion->name }}
+                            <span class="badge text-bg-light border">{{ $suggestion->chart_type->label() }}</span>
+                            @if ($suggestion->table)
+                                <span class="text-secondary fw-normal">— {{ $suggestion->table->name }}</span>
+                            @endif
+                        </div>
+                        <div class="text-secondary fst-italic">💡 {{ $suggestion->rationale }}</div>
+                    </div>
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        <form method="POST" action="{{ route('projects.visualization-suggestions.accept', [$project, $suggestion]) }}">
+                            @csrf
+                            <input type="hidden" name="dashboard_id" value="{{ $dashboard->id }}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Créer et ajouter</button>
+                        </form>
+                        <form method="POST" action="{{ route('projects.visualization-suggestions.reject', [$project, $suggestion]) }}">
+                            @csrf
+                            <input type="hidden" name="dashboard_id" value="{{ $dashboard->id }}">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Rejeter</button>
+                        </form>
+                    </div>
+                </li>
+            @endforeach
+        </ul>
     </div>
 @endif
 

@@ -94,6 +94,11 @@ class Project extends Model
         return $this->hasMany(Report::class);
     }
 
+    public function visualizationSuggestions(): HasMany
+    {
+        return $this->hasMany(VisualizationSuggestion::class);
+    }
+
     /**
      * Module Contexte métier: one line summarizing what this project is
      * for, falling back to the free-text "other" fields when the enum case

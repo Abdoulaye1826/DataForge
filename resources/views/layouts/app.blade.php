@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Dashboard') · {{ config('app.name') }}</title>
+    <title>@yield('title', 'Workspace') · {{ config('app.name') }}</title>
 
     <link rel="dns-prefetch" href="//fonts.bunny.net">
 
@@ -24,7 +24,7 @@
 <body>
     <div class="df-app">
         <aside class="df-sidebar">
-            <a href="{{ route('dashboard') }}" class="df-sidebar-brand">
+            <a href="{{ route('workspace') }}" class="df-sidebar-brand">
                 <span class="df-logo-mark">DF</span>
                 <span class="df-sidebar-brand-name">{{ config('app.name') }}</span>
             </a>
@@ -32,11 +32,32 @@
             <nav class="df-nav">
                 <div class="df-nav-section-title">Espace de travail</div>
 
-                <a href="{{ route('dashboard') }}" class="df-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <span class="df-ic">▤</span> Dashboard
+                <a href="{{ route('workspace') }}" class="df-nav-link {{ request()->routeIs('workspace') ? 'active' : '' }}">
+                    <span class="df-ic">▲</span> Workspace
                 </a>
                 <a href="{{ route('projects.index') }}" class="df-nav-link {{ request()->routeIs('projects.*') && ! isset($project) ? 'active' : '' }}">
                     <span class="df-ic">▣</span> Projets
+                </a>
+                <a href="{{ route('datasets.index') }}" class="df-nav-link {{ request()->routeIs('datasets.index') ? 'active' : '' }}">
+                    <span class="df-ic">◆</span> Datasets
+                </a>
+                <a href="{{ route('pipelines.index') }}" class="df-nav-link {{ request()->routeIs('pipelines.index') ? 'active' : '' }}">
+                    <span class="df-ic">⇢</span> Pipelines
+                </a>
+                <a href="{{ route('reports.index') }}" class="df-nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}">
+                    <span class="df-ic">▥</span> Rapports
+                </a>
+                <a href="{{ route('history.index') }}" class="df-nav-link {{ request()->routeIs('history.index') ? 'active' : '' }}">
+                    <span class="df-ic">◷</span> Historique
+                </a>
+
+                <div class="df-nav-section-title">Système</div>
+
+                <a href="{{ route('analytics') }}" class="df-nav-link {{ request()->routeIs('analytics') ? 'active' : '' }}">
+                    <span class="df-ic">▤</span> Analytics
+                </a>
+                <a href="{{ route('settings.index') }}" class="df-nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                    <span class="df-ic">⚙</span> Paramètres
                 </a>
 
                 @isset($project)
@@ -90,7 +111,7 @@
                 @hasSection('breadcrumb')
                     <div class="df-breadcrumb">@yield('breadcrumb')</div>
                 @else
-                    <div class="df-topbar-title">@yield('title', 'Dashboard')</div>
+                    <div class="df-topbar-title">@yield('title', 'Workspace')</div>
                 @endif
 
                 <button type="button" class="df-command-trigger" data-command-trigger>
@@ -112,7 +133,13 @@
     {{-- Palette de commandes (Ctrl/Cmd+K) : navigation rapide vers un projet
          ou une action globale, sans dépendre d'un endpoint dédié - la liste
          des projets de l'utilisateur est déjà bon marché à charger sur
-         chaque page et reste minuscule (id/nom/url uniquement). --}}
+         chaque page et reste minuscule (id/nom/url uniquement).
+
+         JSON_HEX_TAG est requis ici : ce JSON est injecté brut dans un
+         <script>, et un nom de projet contenant littéralement "</script>"
+         casserait le tag et injecterait du HTML/JS arbitraire (XSS stocké)
+         sans cet échappement - JSON_UNESCAPED_SLASHES à lui seul ne protège
+         pas contre ça. --}}
     <script type="application/json" id="df-command-palette-data">
         {!! json_encode([
             'projects' => Auth::user()->projects()->orderByDesc('last_activity_at')->get(['id', 'name'])->map(fn ($p) => [
@@ -121,8 +148,14 @@
                 'url' => route('projects.show', $p),
             ]),
             'global' => [
-                ['label' => 'Tableau de bord', 'hint' => 'Aller à', 'url' => route('dashboard')],
+                ['label' => 'Workspace', 'hint' => 'Aller à', 'url' => route('workspace')],
                 ['label' => 'Tous les projets', 'hint' => 'Aller à', 'url' => route('projects.index')],
+                ['label' => 'Datasets', 'hint' => 'Aller à', 'url' => route('datasets.index')],
+                ['label' => 'Pipelines', 'hint' => 'Aller à', 'url' => route('pipelines.index')],
+                ['label' => 'Rapports', 'hint' => 'Aller à', 'url' => route('reports.index')],
+                ['label' => 'Historique', 'hint' => 'Aller à', 'url' => route('history.index')],
+                ['label' => 'Analytics', 'hint' => 'Aller à', 'url' => route('analytics')],
+                ['label' => 'Paramètres', 'hint' => 'Aller à', 'url' => route('settings.index')],
             ],
             'project' => isset($project) ? [
                 ['label' => 'Aperçu du projet', 'hint' => $project->name, 'url' => route('projects.show', $project)],
@@ -132,7 +165,7 @@
                 ['label' => 'Rapports', 'hint' => $project->name, 'url' => route('projects.reports.index', $project)],
                 ['label' => 'Assistant IA', 'hint' => $project->name, 'url' => route('projects.assistant.index', $project)],
             ] : [],
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}
     </script>
 
     <div class="df-command-palette" data-command-palette hidden>

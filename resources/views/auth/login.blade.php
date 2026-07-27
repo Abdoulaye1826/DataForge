@@ -1,8 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Connexion')
+
 @section('content')
-<h1 class="h5 fw-bold mb-1">Connexion</h1>
-<p class="text-secondary mb-4">Accédez à votre espace DataForge.</p>
+<h1 class="df-auth-title">Bon retour parmi nous</h1>
+<p class="df-auth-subtitle">Connectez-vous pour retrouver vos projets et vos dashboards.</p>
 
 <form method="POST" action="{{ route('login') }}">
     @csrf

@@ -16,4 +16,10 @@ interface PipelineStepRepositoryInterface
     public function nextStepOrder(int $projectId): int;
 
     public function find(int $id): ?PipelineStep;
+
+    /**
+     * Most recent pipeline steps across every project owned by the user,
+     * for the global Pipelines page.
+     */
+    public function recentForUser(int $userId, int $limit): Collection;
 }

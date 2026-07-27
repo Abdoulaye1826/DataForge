@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Dataset;
 use App\Repositories\Contracts\DatasetRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class EloquentDatasetRepository implements DatasetRepositoryInterface
 {
@@ -27,5 +28,14 @@ class EloquentDatasetRepository implements DatasetRepositoryInterface
     public function countForUser(int $userId): int
     {
         return Dataset::whereHas('project', fn ($query) => $query->where('user_id', $userId))->count();
+    }
+
+    public function allForUser(int $userId): Collection
+    {
+        return Dataset::whereHas('project', fn ($query) => $query->where('user_id', $userId))
+            ->withCount('tables')
+            ->with('project')
+            ->latest()
+            ->get();
     }
 }

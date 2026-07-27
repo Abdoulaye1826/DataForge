@@ -1,7 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Réinitialiser le mot de passe')
+
 @section('content')
-<h1 class="h5 fw-bold mb-1">Réinitialiser le mot de passe</h1>
+<h1 class="df-auth-title">Nouveau mot de passe</h1>
+<p class="df-auth-subtitle">Choisissez un mot de passe pour votre compte.</p>
 
 <form method="POST" action="{{ route('password.update') }}">
     @csrf

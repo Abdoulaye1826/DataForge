@@ -13,6 +13,16 @@ class EloquentAiInsightRepository implements AiInsightRepositoryInterface
         return AiInsight::where('dataset_table_id', $datasetTableId)->get();
     }
 
+    public function actionableForUser(int $userId, int $limit): Collection
+    {
+        return AiInsight::whereNotNull('suggested_action')
+            ->whereHas('project', fn ($query) => $query->where('user_id', $userId))
+            ->with(['project', 'table.dataset'])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
     public function create(array $attributes): AiInsight
     {
         return AiInsight::create($attributes);

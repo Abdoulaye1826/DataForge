@@ -21,6 +21,7 @@ use App\Repositories\Contracts\ReportRepositoryInterface;
 use App\Repositories\Contracts\StatisticalTestRepositoryInterface;
 use App\Repositories\Contracts\UserPipelinePreferenceRepositoryInterface;
 use App\Repositories\Contracts\VisualizationRepositoryInterface;
+use App\Repositories\Contracts\VisualizationSuggestionRepositoryInterface;
 use App\Repositories\Eloquent\EloquentActivityLogRepository;
 use App\Repositories\Eloquent\EloquentAiConversationRepository;
 use App\Repositories\Eloquent\EloquentAiInsightRepository;
@@ -40,6 +41,7 @@ use App\Repositories\Eloquent\EloquentReportRepository;
 use App\Repositories\Eloquent\EloquentStatisticalTestRepository;
 use App\Repositories\Eloquent\EloquentUserPipelinePreferenceRepository;
 use App\Repositories\Eloquent\EloquentVisualizationRepository;
+use App\Repositories\Eloquent\EloquentVisualizationSuggestionRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -68,6 +70,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PipelineSuggestionRepositoryInterface::class, EloquentPipelineSuggestionRepository::class);
         $this->app->bind(UserPipelinePreferenceRepositoryInterface::class, EloquentUserPipelinePreferenceRepository::class);
         $this->app->bind(DatabaseConnectionRepositoryInterface::class, EloquentDatabaseConnectionRepository::class);
+        $this->app->bind(VisualizationSuggestionRepositoryInterface::class, EloquentVisualizationSuggestionRepository::class);
     }
 
     /**

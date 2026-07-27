@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\DTO\PythonScriptResult;
 use App\Exceptions\PythonExecutionException;
 use App\Services\Project\ProjectService;
 use App\Services\Python\PythonRunnerService;
@@ -10,8 +9,8 @@ use Illuminate\Contracts\View\View;
 
 /**
  * Module 1 - Tableau de bord global: project/dataset counts, recent activity,
- * and a Python bridge health check (useful given how much of the pipeline
- * shells out to Python).
+ * and an activity trend chart. The Python bridge health check runs silently
+ * and only surfaces to the user as an alert if it actually fails.
  */
 class DashboardController extends Controller
 {
@@ -23,27 +22,24 @@ class DashboardController extends Controller
 
     public function index(): View
     {
-        [$pythonStatus, $pythonResult] = $this->checkPythonBridge();
-
         $user = auth()->user();
 
         return view('dashboard.index', [
             'stats' => $this->projects->dashboardStats($user),
             'recentActivity' => $this->projects->recentActivity($user),
-            'pythonStatus' => $pythonStatus,
-            'pythonResult' => $pythonResult,
+            'activityTrend' => $this->projects->activityTrend($user),
+            'pythonError' => $this->checkPythonBridge(),
         ]);
     }
 
-    /**
-     * @return array{0: 'ok'|'error', 1: PythonScriptResult|string}
-     */
-    private function checkPythonBridge(): array
+    private function checkPythonBridge(): ?string
     {
         try {
-            return ['ok', $this->pythonRunner->run('smoke_test.py', ['ping' => 'dataforge'])];
+            $this->pythonRunner->run('smoke_test.py', ['ping' => 'dataforge']);
+
+            return null;
         } catch (PythonExecutionException $e) {
-            return ['error', $e->getMessage()];
+            return $e->getMessage();
         }
     }
 }

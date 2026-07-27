@@ -391,6 +391,135 @@ a:hover { color: var(--df-ember); }
     }
 }
 
+/* ---------------------------------- Workspace ---------------------------------- */
+
+.df-quick-action {
+    @extend .df-card;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+
+    &:hover {
+        border-color: var(--df-border-strong);
+        color: inherit;
+    }
+
+    .df-qa-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: $border-radius-sm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--df-surface-3);
+        font-size: 15px;
+    }
+
+    &.primary .df-qa-icon {
+        background: var(--df-ember-tint);
+        color: var(--df-ember-strong);
+    }
+
+    .df-qa-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .df-qa-sub {
+        font-size: 12.5px;
+        color: var(--df-text-muted);
+    }
+}
+
+.df-mini-project {
+    @extend .df-card;
+    padding: 14px 16px;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        border-color: var(--df-border-strong);
+        color: inherit;
+    }
+
+    .df-mp-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .df-mp-name {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .df-mp-meta {
+        font-size: 11.5px;
+        color: var(--df-text-faint);
+        margin-bottom: 10px;
+    }
+
+    .df-mp-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--df-surface-3);
+        overflow: hidden;
+
+        > span {
+            display: block;
+            height: 100%;
+            background: var(--df-teal);
+        }
+    }
+}
+
+.df-feed-item {
+    @extend .df-card;
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+        border-color: var(--df-border-strong);
+        color: inherit;
+    }
+
+    .df-feed-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: $border-radius-sm;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    &.warning .df-feed-dot { background: var(--df-warning-tint); color: var(--df-warning); }
+    &.info .df-feed-dot { background: var(--df-teal-tint); color: var(--df-teal); }
+    &.action .df-feed-dot { background: var(--df-ember-tint); color: var(--df-ember-strong); }
+
+    .df-feed-msg {
+        font-size: 12.5px;
+        line-height: 1.4;
+    }
+
+    .df-feed-src {
+        font-size: 10.5px;
+        color: var(--df-text-faint);
+        margin-top: 3px;
+    }
+}
+
 /* ---------------------------------- Pipeline stepper ---------------------------------- */
 
 .df-pipeline {
@@ -863,4 +992,182 @@ a:hover { color: var(--df-ember); }
     border-radius: $border-radius;
     padding: 8px 10px;
     background: var(--df-surface);
+}
+
+/* ---------------------------------- Authentification ---------------------------------- */
+
+// Écran de connexion/inscription : deux volets fixes (pas liés au bascule
+// clair/sombre de l'appli - personne n'est encore connecté pour avoir une
+// préférence enregistrée). Le volet vitrine reprend l'identité de marque
+// établie (cuivre + teal sur un fond chaud profond) plutôt que le thème néon
+// bleu du tableau de bord, qui reste une variante délibérément à part.
+.df-auth-shell {
+    display: flex;
+    min-height: 100vh;
+    background: $paper;
+}
+
+.df-auth-form-panel {
+    flex: 1 1 480px;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 56px clamp(28px, 6vw, 88px);
+}
+
+.df-auth-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: clamp(32px, 6vh, 64px);
+
+    .df-logo-mark { width: 30px; height: 30px; font-size: 12px; }
+}
+
+.df-auth-brand-name {
+    font-family: $font-family-display;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: 17px;
+    color: $ink;
+}
+
+.df-auth-form-wrap {
+    width: 100%;
+    max-width: 380px;
+}
+
+.df-auth-title {
+    font-family: $font-family-display;
+    font-optical-sizing: auto;
+    font-weight: 560;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    color: $ink;
+    margin-bottom: 6px;
+    text-wrap: balance;
+}
+
+.df-auth-subtitle {
+    color: $steel;
+    font-size: 14px;
+    margin-bottom: 32px;
+}
+
+.df-auth-footer {
+    margin-top: clamp(32px, 6vh, 64px);
+    font-size: 12px;
+    color: mix($steel, $paper, 70%);
+}
+
+.df-auth-hero-panel {
+    flex: 1 1 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 64px;
+    overflow: hidden;
+    background:
+        radial-gradient(720px 520px at 12% 8%, rgba(221, 122, 31, 0.22), transparent 60%),
+        radial-gradient(640px 640px at 95% 92%, rgba(31, 122, 108, 0.20), transparent 55%),
+        linear-gradient(165deg, #241a12 0%, #17110c 62%, #120d09 100%);
+    color: #f4ede2;
+
+    // Trame fine en arrière-plan - juste assez visible pour donner de la
+    // texture au fond sans distraire du contenu.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            repeating-linear-gradient(90deg, rgba(244, 237, 226, 0.035) 0 1px, transparent 1px 64px),
+            repeating-linear-gradient(0deg, rgba(244, 237, 226, 0.035) 0 1px, transparent 1px 64px);
+        mask-image: radial-gradient(900px 700px at 30% 30%, black, transparent 75%);
+    }
+}
+
+.df-auth-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 460px;
+}
+
+.df-auth-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 700;
+    color: #f0954a;
+    margin-bottom: 20px;
+
+    &::before {
+        content: '';
+        width: 18px;
+        height: 1px;
+        background: currentColor;
+    }
+}
+
+.df-auth-hero-title {
+    font-family: $font-family-display;
+    font-optical-sizing: auto;
+    font-weight: 560;
+    font-size: clamp(28px, 3vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: #fff;
+    margin-bottom: 16px;
+    text-wrap: balance;
+}
+
+.df-auth-hero-sub {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(244, 237, 226, 0.72);
+    margin-bottom: 36px;
+    max-width: 40ch;
+}
+
+.df-auth-hero-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.df-auth-hero-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13.5px;
+    color: rgba(244, 237, 226, 0.88);
+    line-height: 1.5;
+
+    .df-ic {
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background: rgba(240, 149, 74, 0.14);
+        color: #f7b274;
+        border: 1px solid rgba(240, 149, 74, 0.25);
+    }
+
+    strong { color: #fff; font-weight: 600; }
+}
+
+@media (max-width: 900px) {
+    .df-auth-hero-panel { display: none; }
+    .df-auth-form-panel { max-width: none; margin: 0 auto; }
 }

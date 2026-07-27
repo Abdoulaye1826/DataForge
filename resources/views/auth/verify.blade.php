@@ -1,7 +1,9 @@
 @extends('layouts.guest')
 
+@section('title', 'Vérifiez votre e-mail')
+
 @section('content')
-<h1 class="h5 fw-bold mb-3">Vérifiez votre adresse e-mail</h1>
+<h1 class="df-auth-title mb-3">Vérifiez votre adresse e-mail</h1>
 
 @if (session('resent'))
     <div class="alert alert-success" role="alert">

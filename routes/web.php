@@ -8,18 +8,25 @@ use App\Http\Controllers\DashboardWidgetController;
 use App\Http\Controllers\DatabaseConnectionController;
 use App\Http\Controllers\DatasetController;
 use App\Http\Controllers\DatasetImportController;
+use App\Http\Controllers\DatasetsController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\MlAnalysisController;
 use App\Http\Controllers\NotebookController;
+use App\Http\Controllers\PipelinesController;
 use App\Http\Controllers\PipelineStepController;
 use App\Http\Controllers\PipelineSuggestionController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\QualityController;
 use App\Http\Controllers\RelationshipController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StatisticalTestController;
 use App\Http\Controllers\TableDataController;
 use App\Http\Controllers\VisualizationController;
+use App\Http\Controllers\VisualizationSuggestionController;
+use App\Http\Controllers\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,13 +41,22 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    return redirect()->route('workspace');
 });
 
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
-    Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/home', [WorkspaceController::class, 'index'])->name('workspace');
+    Route::get('/analytics', [DashboardController::class, 'index'])->name('analytics');
+    Route::get('/datasets', [DatasetsController::class, 'index'])->name('datasets.index');
+    Route::get('/pipelines', [PipelinesController::class, 'index'])->name('pipelines.index');
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile.update');
+    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
 
     Route::resource('projects', ProjectController::class)->except(['create', 'edit']);
 
@@ -85,6 +101,12 @@ Route::middleware('auth')->group(function () {
         Route::post('reports', [ReportController::class, 'store'])->name('reports.store')->middleware('throttle:ai');
         Route::get('reports/{report}/download', [ReportController::class, 'download'])->name('reports.download');
         Route::delete('reports/{report}', [ReportController::class, 'destroy'])->name('reports.destroy');
+
+        Route::post('visualization-suggestions', [VisualizationSuggestionController::class, 'store'])->name('visualization-suggestions.store')->middleware('throttle:ai');
+        Route::post('visualization-suggestions/{visualizationSuggestion}/accept', [VisualizationSuggestionController::class, 'accept'])->name('visualization-suggestions.accept')->middleware('throttle:heavy');
+        Route::post('visualization-suggestions/{visualizationSuggestion}/reject', [VisualizationSuggestionController::class, 'reject'])->name('visualization-suggestions.reject');
+
+        Route::post('dashboards/{dashboard}/export', [DashboardBuilderController::class, 'export'])->name('dashboards.export')->middleware('throttle:heavy');
 
         Route::prefix('datasets/{dataset}')->name('datasets.')->group(function () {
             Route::get('tables/{table}/quality', [QualityController::class, 'show'])->name('tables.quality.show');

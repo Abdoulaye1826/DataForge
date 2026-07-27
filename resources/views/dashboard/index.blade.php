@@ -1,30 +1,40 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Analytics')
 
 @section('content')
+@if ($pythonError)
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert">
+        <span class="df-ic">⚠</span>
+        <div>
+            <strong>Pont Python indisponible.</strong>
+            <span class="small d-block text-secondary">{{ $pythonError }}</span>
+        </div>
+    </div>
+@endif
+
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
         <div class="df-stat-tile">
-            <div class="df-stat-label">Projets</div>
+            <div class="df-stat-label"><span class="df-ic">▣</span> Projets</div>
             <div class="df-stat-value">{{ $stats['projects'] }}</div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
         <div class="df-stat-tile">
-            <div class="df-stat-label">Datasets</div>
+            <div class="df-stat-label"><span class="df-ic">◆</span> Datasets</div>
             <div class="df-stat-value">{{ $stats['datasets'] }}</div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
         <div class="df-stat-tile">
-            <div class="df-stat-label">Qualité moyenne</div>
+            <div class="df-stat-label"><span class="df-ic">✦</span> Qualité moyenne</div>
             <div class="df-stat-value">{{ $stats['avg_quality'] !== null ? round($stats['avg_quality']) . '/100' : '—' }}</div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
         <div class="df-stat-tile">
-            <div class="df-stat-label">Rapports générés</div>
+            <div class="df-stat-label"><span class="df-ic">▥</span> Rapports générés</div>
             <div class="df-stat-value">{{ $stats['reports'] }}</div>
         </div>
     </div>
@@ -32,6 +42,16 @@
 
 <div class="row g-3">
     <div class="col-lg-8">
+        <div class="df-card">
+            <h2 class="h6 fw-bold mb-3">Activité (14 derniers jours)</h2>
+
+            @php $activityTrendPayload = $activityTrend; @endphp
+            <div style="height: 220px" data-chart-type="line" data-chart-name="Activité"
+                 data-chart-payload='@json($activityTrendPayload)'></div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
         <div class="df-card">
             <h2 class="h6 fw-bold mb-3">Historique récent</h2>
 
@@ -42,39 +62,12 @@
             @else
                 <ul class="list-unstyled mb-0">
                     @foreach ($recentActivity as $activity)
-                        <li class="d-flex justify-content-between py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                        <li class="d-flex justify-content-between gap-2 py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
                             <span class="small">{{ $activity->description }}</span>
-                            <span class="small text-secondary">{{ $activity->created_at->diffForHumans() }}</span>
+                            <span class="small text-secondary text-nowrap">{{ $activity->created_at->diffForHumans() }}</span>
                         </li>
                     @endforeach
                 </ul>
-            @endif
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="df-card">
-            <h2 class="h6 fw-bold mb-3">État du système</h2>
-
-            <div class="d-flex align-items-center gap-2 mb-2">
-                @if ($pythonStatus === 'ok')
-                    <span class="badge text-bg-success">OK</span>
-                    <span class="small">Pont Python opérationnel</span>
-                @else
-                    <span class="badge text-bg-danger">Erreur</span>
-                    <span class="small">Pont Python indisponible</span>
-                @endif
-            </div>
-
-            @if ($pythonStatus === 'ok')
-                <ul class="small text-secondary mb-0 ps-3">
-                    <li>Python {{ \Illuminate\Support\Str::before($pythonResult->data['python_version'], ' ') }}</li>
-                    @foreach ($pythonResult->data['packages'] as $package => $version)
-                        <li>{{ $package }}: {{ $version ?? 'non installé' }}</li>
-                    @endforeach
-                </ul>
-            @else
-                <p class="small text-danger mb-0">{{ $pythonResult }}</p>
             @endif
         </div>
     </div>

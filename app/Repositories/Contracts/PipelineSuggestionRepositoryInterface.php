@@ -11,6 +11,12 @@ interface PipelineSuggestionRepositoryInterface
 
     public function pendingForTable(int $datasetTableId): Collection;
 
+    /**
+     * Pending suggestions across every project owned by the user, for the
+     * Workspace intelligence feed.
+     */
+    public function pendingForUser(int $userId, int $limit): Collection;
+
     public function deletePendingForTable(int $datasetTableId): void;
 
     public function find(int $id): ?PipelineSuggestion;

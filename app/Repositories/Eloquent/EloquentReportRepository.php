@@ -18,6 +18,19 @@ class EloquentReportRepository implements ReportRepositoryInterface
         return Report::where('project_id', $projectId)->latest()->get();
     }
 
+    public function countForUser(int $userId): int
+    {
+        return Report::whereHas('project', fn ($q) => $q->where('user_id', $userId))->count();
+    }
+
+    public function allForUser(int $userId): Collection
+    {
+        return Report::whereHas('project', fn ($q) => $q->where('user_id', $userId))
+            ->with('project')
+            ->latest()
+            ->get();
+    }
+
     public function create(array $attributes): Report
     {
         return Report::create($attributes);

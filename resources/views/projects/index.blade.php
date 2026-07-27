@@ -22,24 +22,24 @@
     </div>
 @else
     <div class="row g-3">
-        @foreach ($projects as $project)
+        @foreach ($projects as $listedProject)
             <div class="col-md-6 col-lg-4">
-                <a href="{{ route('projects.show', $project) }}" class="df-card d-block text-decoration-none text-reset h-100">
+                <a href="{{ route('projects.show', $listedProject) }}" class="df-card d-block text-decoration-none text-reset h-100">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h2 class="h6 fw-bold mb-0">{{ $project->name }}</h2>
-                        <span class="badge {{ $project->status->badgeClass() }}">{{ $project->status->label() }}</span>
+                        <h2 class="h6 fw-bold mb-0">{{ $listedProject->name }}</h2>
+                        <span class="badge {{ $listedProject->status->badgeClass() }}">{{ $listedProject->status->label() }}</span>
                     </div>
                     <p class="text-secondary small mb-2">
-                        {{ $project->description ? \Illuminate\Support\Str::limit($project->description, 100) : 'Aucune description.' }}
+                        {{ $listedProject->description ? \Illuminate\Support\Str::limit($listedProject->description, 100) : 'Aucune description.' }}
                     </p>
-                    @if ($project->businessContextLine())
+                    @if ($listedProject->businessContextLine())
                         <p class="small mb-3">
-                            <span class="df-badge-context">{{ $project->businessContextLine() }}</span>
+                            <span class="df-badge-context">{{ $listedProject->businessContextLine() }}</span>
                         </p>
                     @endif
                     <div class="d-flex justify-content-between text-secondary small">
-                        <span>{{ $project->datasets_count }} dataset(s)</span>
-                        <span>{{ $project->last_activity_at?->diffForHumans() ?? '—' }}</span>
+                        <span>{{ $listedProject->datasets_count }} dataset(s)</span>
+                        <span>{{ $listedProject->last_activity_at?->diffForHumans() ?? '—' }}</span>
                     </div>
                 </a>
             </div>

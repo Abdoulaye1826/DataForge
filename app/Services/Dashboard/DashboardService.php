@@ -177,7 +177,10 @@ class DashboardService
     {
         $visualization = $widget->visualization;
 
-        if (! $visualization) {
+        // A visualization survives its source table's deletion (see
+        // filterableColumns() above) - its ->table is then null and there's
+        // no data left to re-fetch with the live filter.
+        if (! $visualization || ! $visualization->table) {
             return ['chart_type' => null, 'data' => []];
         }
 
@@ -209,6 +212,14 @@ class DashboardService
             }
 
             $table = $widget->visualization->table;
+
+            // The visualization's source table can have been deleted since
+            // (dataset_table_id nulls out via nullOnDelete() - the
+            // visualization row itself is kept for history) - skip it like a
+            // widget with no visualization at all, just above.
+            if (! $table) {
+                continue;
+            }
 
             foreach ($table->columns as $column) {
                 $type = match ($column->detected_type->value) {

@@ -1,8 +1,10 @@
 @extends('layouts.guest')
 
+@section('title', 'Confirmer le mot de passe')
+
 @section('content')
-<h1 class="h5 fw-bold mb-1">Confirmer le mot de passe</h1>
-<p class="text-secondary mb-4">Merci de confirmer votre mot de passe avant de continuer.</p>
+<h1 class="df-auth-title">Confirmer le mot de passe</h1>
+<p class="df-auth-subtitle">Merci de confirmer votre mot de passe avant de continuer.</p>
 
 <form method="POST" action="{{ route('password.confirm') }}">
     @csrf

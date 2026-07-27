@@ -37,4 +37,13 @@ class EloquentPipelineStepRepository implements PipelineStepRepositoryInterface
     {
         return PipelineStep::find($id);
     }
+
+    public function recentForUser(int $userId, int $limit): Collection
+    {
+        return PipelineStep::whereHas('project', fn ($query) => $query->where('user_id', $userId))
+            ->with(['project', 'table.dataset'])
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
 }
